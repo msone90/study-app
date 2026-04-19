@@ -8,7 +8,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* ── RESET & BASE ── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
   --bg:#f7f6f2;--bg2:#ffffff;--bg3:#eeece6;
@@ -36,8 +35,6 @@
 }
 html,body{height:100%;background:var(--bg);}
 body{font-family:var(--font-b);color:var(--text);display:flex;overflow:hidden;}
-
-/* ── SIDEBAR ── */
 .sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--bg2);border-right:1.5px solid var(--border);display:flex;flex-direction:column;height:100vh;position:fixed;left:0;top:0;z-index:100;transition:transform .25s cubic-bezier(.4,0,.2,1);}
 .sidebar-logo{padding:22px 20px 16px;border-bottom:1px solid var(--border);}
 .logo-name{font-family:var(--font-d);font-size:16px;font-weight:900;color:var(--text);letter-spacing:-.3px;}
@@ -57,14 +54,11 @@ body{font-family:var(--font-b);color:var(--text);display:flex;overflow:hidden;}
 .nav-item.active{background:var(--c-km-bg);color:var(--c-km);}
 .nav-icon{width:18px;height:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
 .nav-icon svg{width:16px;height:16px;}
-.nav-badge{margin-left:auto;background:var(--c-km);color:white;border-radius:20px;padding:1px 7px;font-size:10px;font-family:var(--font-d);font-weight:700;}
 .sidebar-bottom{padding:12px 10px;border-top:1px solid var(--border);}
 .streak-pill{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);}
 .streak-fire{width:16px;height:16px;background:#e05252;border-radius:50%;}
 .streak-text{font-size:12px;font-weight:700;font-family:var(--font-d);color:var(--text2);}
 .streak-num{color:#e05252;}
-
-/* ── TOPBAR MOBILE ── */
 .topbar-mobile{display:none;position:fixed;top:0;left:0;right:0;z-index:99;background:var(--bg2);border-bottom:1.5px solid var(--border);padding:12px 16px;align-items:center;justify-content:space-between;gap:12px;}
 .hamburger{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;gap:4px;padding:4px;}
 .hamburger span{display:block;width:20px;height:2px;background:var(--text2);border-radius:2px;}
@@ -72,24 +66,14 @@ body{font-family:var(--font-b);color:var(--text);display:flex;overflow:hidden;}
 .mobile-xp{font-family:var(--font-d);font-size:13px;font-weight:800;color:var(--c-xp);}
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:99;backdrop-filter:blur(2px);}
 .overlay.show{display:block;}
-
-/* ── MAIN WRAP ── */
 .main-wrap{margin-left:var(--sidebar-w);flex:1;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
 .content-area{flex:1;overflow:hidden;position:relative;}
-
-/* ── PAGE PANELS ── */
 .page-panel{position:absolute;inset:0;overflow-y:auto;display:none;background:var(--bg);}
 .page-panel.active{display:block;}
-
-/* ── SHARED TOAST ── */
 .g-toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(12px);background:var(--text);color:white;border-radius:24px;padding:10px 22px;font-size:13px;font-family:var(--font-d);font-weight:700;opacity:0;transition:all .28s;z-index:9999;white-space:nowrap;pointer-events:none;}
 .g-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-
-/* ── SHARED COIN ── */
 @keyframes cf{0%{opacity:0;transform:translateY(0) scale(.4)}20%{opacity:1;transform:translateY(-12px) scale(1.15)}80%{opacity:1;transform:translateY(-60px)}100%{opacity:0;transform:translateY(-88px) scale(.4)}}
 .coin-el{position:fixed;pointer-events:none;z-index:9998;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe066,#f9c846,#d4a017);border:1.5px solid #e5a800;animation:cf .95s ease-out forwards;}
-
-/* ── SETTINGS ── */
 .settings-wrap{max-width:640px;margin:0 auto;padding:32px 28px 64px;}
 .settings-title{font-family:var(--font-d);font-size:20px;font-weight:900;margin-bottom:28px;}
 .settings-section{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px 22px;margin-bottom:16px;box-shadow:var(--shadow);}
@@ -113,7 +97,6 @@ body{font-family:var(--font-b);color:var(--text);display:flex;overflow:hidden;}
 .edc-in{width:100%;padding:8px 10px;border:1.5px solid var(--border2);border-radius:6px;font-size:13px;font-family:var(--font-b);color:var(--text);background:var(--bg2);outline:none;transition:border-color .15s;}
 .edc-in:focus{border-color:var(--c-km);}
 .edc-days{font-size:10px;color:var(--text3);margin-top:4px;font-family:var(--font-d);}
-
 @media(max-width:768px){
   .sidebar{transform:translateX(-100%);}
   .sidebar.open{transform:translateX(0);box-shadow:var(--shadow-md);}
@@ -124,9 +107,8 @@ body{font-family:var(--font-b);color:var(--text);display:flex;overflow:hidden;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 .fu{animation:fadeUp .38s ease both;}
 .d1{animation-delay:.04s}.d2{animation-delay:.1s}.d3{animation-delay:.16s}.d4{animation-delay:.22s}.d5{animation-delay:.28s}
-</style>
-<style id="page-styles">
-/* === dashboard styles === */
+
+/* == dashboard == */
 
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -258,7 +240,8 @@ body{font-family:var(--font-b);color:var(--text);display:flex;overflow:hidden;}
 .fu{animation:fadeUp .4s ease both;}
 .d1{animation-delay:.04s}.d2{animation-delay:.1s}.d3{animation-delay:.16s}.d4{animation-delay:.22s}.d5{animation-delay:.28s}
 
-/* === quiz styles === */
+
+/* == quiz == */
 
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -464,7 +447,8 @@ body{font-family:var(--font-b);color:var(--text);display:flex;overflow:hidden;}
 .fu{animation:fadeUp .38s ease both;}
 .d1{animation-delay:.04s}.d2{animation-delay:.1s}.d3{animation-delay:.16s}
 
-/* === mock styles === */
+
+/* == mock == */
 
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -636,7 +620,8 @@ body{font-family:var(--font-b);color:var(--text);display:flex;overflow:hidden;}
 .fu{animation:fadeUp .38s ease both;}
 .d1{animation-delay:.04s}.d2{animation-delay:.1s}.d3{animation-delay:.16s}.d4{animation-delay:.22s}
 
-/* === weakness styles === */
+
+/* == weakness == */
 
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -726,7 +711,8 @@ canvas#radar-canvas{display:block;width:100%;max-width:360px;margin:0 auto;}
 .fu{animation:fadeUp .38s ease both;}
 .d1{animation-delay:.04s}.d2{animation-delay:.1s}.d3{animation-delay:.16s}.d4{animation-delay:.22s}.d5{animation-delay:.28s}
 
-/* === history styles === */
+
+/* == history == */
 
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -825,12 +811,112 @@ canvas#radar-canvas{display:block;width:100%;max-width:360px;margin:0 auto;}
 .d1{animation-delay:.04s}.d2{animation-delay:.1s}.d3{animation-delay:.16s}.d4{animation-delay:.22s}.d5{animation-delay:.28s}
 
 </style>
+
+<script>
+// ══ GLOBAL NAVIGATION & STATE ══
+const LEVELS=[
+  {lv:1,name:'初心者',xp:0},{lv:2,name:'見習學者',xp:200},
+  {lv:3,name:'努力中的人',xp:500},{lv:4,name:'知識探索者',xp:1000},
+  {lv:5,name:'備考戰士',xp:2000},{lv:6,name:'學習冒險家',xp:3500},
+  {lv:7,name:'考試挑戰者',xp:5500},{lv:8,name:'知識獵人',xp:8000},
+  {lv:9,name:'精通學者',xp:12000},{lv:10,name:'傳說備考士',xp:18000},
+];
+function getLv(xp){let r=LEVELS[0];for(const l of LEVELS)if(xp>=l.xp)r=l;return r;}
+function getNextLv(xp){const cur=getLv(xp);const nxt=LEVELS.find(l=>l.lv===cur.lv+1);return nxt||cur;}
+function readState(){try{return JSON.parse(localStorage.getItem('lq3'))||{};}catch(e){return {};}}
+
+const PAGE_TITLES={dashboard:'備考儀表板',quiz:'每日測驗',mock:'模擬考試',weakness:'弱點分析',history:'歷史紀錄',settings:'設定'};
+let curPage='dashboard';
+
+function goPage(page){
+  document.getElementById('nav-'+curPage)?.classList.remove('active');
+  document.getElementById('panel-'+curPage)?.classList.remove('active');
+  curPage=page;
+  document.getElementById('nav-'+page)?.classList.add('active');
+  const panel=document.getElementById('panel-'+page);
+  if(panel){panel.classList.add('active');panel.scrollTop=0;}
+  const mt=document.getElementById('mobile-title');if(mt)mt.textContent=PAGE_TITLES[page]||page;
+  closeSidebar();
+  refreshSidebar();
+  if(page==='settings'){loadApiStatus();renderExamDates();}
+  if(page==='weakness'&&typeof renderAll==='function')renderAll();
+  if(page==='history'&&typeof render==='function')render();
+}
+
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+function refreshSidebar(){
+  const S=readState();const xp=S.xp||0;
+  const lv=getLv(xp);const nxt=getNextLv(xp);
+  const xpIn=xp-lv.xp;const xpNeed=nxt.xp-lv.xp;
+  const pct=xpNeed>0?Math.round(xpIn/xpNeed*100):100;
+  const el=id=>document.getElementById(id);
+  if(el('sb-xp'))el('sb-xp').textContent=xp.toLocaleString()+' XP';
+  if(el('sb-lv'))el('sb-lv').textContent='Lv.'+lv.lv+' '+lv.name;
+  if(el('sb-xp-next'))el('sb-xp-next').textContent=nxt.lv>lv.lv?xpIn+'/'+xpNeed:'MAX';
+  if(el('sb-xp-bar'))el('sb-xp-bar').style.width=pct+'%';
+  if(el('sb-streak'))el('sb-streak').textContent=S.streak||0;
+  if(el('mobile-xp'))el('mobile-xp').textContent=xp.toLocaleString()+' XP';
+}
+
+// Global toast
+let _gtt;
+function gToast(m){const t=document.getElementById('g-toast');if(!t)return;t.textContent=m;t.classList.add('show');clearTimeout(_gtt);_gtt=setTimeout(()=>t.classList.remove('show'),2400);}
+// Also override toast function used by pages
+function toast(m){gToast(m);}
+
+// Global coin
+function gCoin(x,y){const c=document.createElement('div');c.className='coin-el';c.style.left=(x+(Math.random()-.5)*22)+'px';c.style.top=y+'px';const layer=document.getElementById('g-coin-layer');if(layer){layer.appendChild(c);setTimeout(()=>c.remove(),1000);}}
+function gBurstCoins(){for(let i=0;i<14;i++)setTimeout(()=>gCoin(Math.random()*window.innerWidth,window.innerHeight*.4+Math.random()*80),i*55);}
+
+// Settings
+const EXAM_KEYS=[{key:'gr',label:'英檢初級 聽讀'},{key:'gw',label:'英檢初級 說寫'},{key:'jp',label:'日檢 N4'},{key:'km',label:'關務三等特考'}];
+function daysUntilG(ds){if(!ds)return null;const n=new Date();n.setHours(0,0,0,0);const t=new Date(ds);t.setHours(0,0,0,0);return Math.ceil((t-n)/86400000);}
+function loadApiStatus(){
+  const key=localStorage.getItem('lq_api_key');
+  const dot=document.getElementById('api-dot');const txt=document.getElementById('api-status-text');const inp=document.getElementById('api-input');
+  if(!dot)return;
+  if(key){dot.className='api-dot ok';if(txt)txt.textContent='已設定（'+key.slice(0,12)+'...）';if(inp)inp.placeholder='已設定，輸入新 Key 覆蓋';}
+  else{dot.className='api-dot missing';if(txt)txt.textContent='尚未設定';}
+}
+function saveApiKey(){
+  const inp=document.getElementById('api-input');if(!inp)return;
+  const val=inp.value.trim();
+  if(!val){gToast('請輸入 API Key');return;}
+  if(!val.startsWith('sk-ant-')){gToast('Key 格式不正確，應以 sk-ant- 開頭');return;}
+  localStorage.setItem('lq_api_key',val);inp.value='';loadApiStatus();gToast('API Key 已儲存');
+}
+function clearApiKey(){localStorage.removeItem('lq_api_key');const inp=document.getElementById('api-input');if(inp)inp.value='';loadApiStatus();gToast('已清除');}
+function renderExamDates(){
+  const S=readState();const exams=S.exams||{};const grid=document.getElementById('edc-grid');if(!grid)return;
+  grid.innerHTML=EXAM_KEYS.map(e=>{const ex=exams[e.key]||{};const d=daysUntilG(ex.date);return'<div class="edc-card"><div class="edc-name">'+e.label+'</div><input class="edc-in" id="edc-'+e.key+'" type="date" value="'+(ex.date||'')+'"><div class="edc-days">'+(d!==null?'距今 '+d+' 天':'日期未設定')+'</div></div>';}).join('');
+}
+function saveExamDates(){
+  const S=readState();if(!S.exams)S.exams={};
+  EXAM_KEYS.forEach(e=>{const v=document.getElementById('edc-'+e.key)?.value;if(!S.exams[e.key])S.exams[e.key]={name:e.label};S.exams[e.key].date=v||null;});
+  localStorage.setItem('lq3',JSON.stringify(S));renderExamDates();gToast('考試日期已儲存');
+}
+function confirmReset(){
+  if(confirm('確定要清除所有學習資料嗎？此操作無法復原。')){
+    localStorage.removeItem('lq3');gToast('已清除所有資料');refreshSidebar();
+  }
+}
+// goHome used by some pages - redirect to dashboard
+function goHome(){goPage('dashboard');}
+</script>
+
 </head>
 <body>
 <div id="g-coin-layer" style="position:fixed;inset:0;pointer-events:none;z-index:9998;"></div>
 <div class="g-toast" id="g-toast"></div>
 <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
-
 <nav class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <div class="logo-name">備考任務板</div>
@@ -864,7 +950,7 @@ canvas#radar-canvas{display:block;width:100%;max-width:360px;margin:0 auto;}
       <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
       歷史紀錄
     </button>
-    <div class="nav-section" style="margin-top:8px;">資源</div>
+    <div class="nav-section" style="margin-top:8px;">設定</div>
     <button class="nav-item" id="nav-settings" onclick="goPage('settings')">
       <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>
       設定
@@ -877,11 +963,8 @@ canvas#radar-canvas{display:block;width:100%;max-width:360px;margin:0 auto;}
     </div>
   </div>
 </nav>
-
 <div class="topbar-mobile">
-  <button class="hamburger" onclick="toggleSidebar()">
-    <span></span><span></span><span></span>
-  </button>
+  <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
   <div class="mobile-page-title" id="mobile-title">備考儀表板</div>
   <div class="mobile-xp" id="mobile-xp">0 XP</div>
 </div>
@@ -1188,7 +1271,10 @@ render();
 </div>
 
 <div class="page">
-  <div class="xp-chip"><div class="xp-dot"></div><span class="xp-val" id="xpv">0</span></div>
+  <div class="topbar fu d1">
+    
+    <div class="page-title">每日測驗</div>
+    <div class="xp-chip"><div class="xp-dot"></div><span class="xp-val" id="xpv">0</span></div>
   </div>
 
   <!-- ══ SCREEN 1: SELECT ══ -->
@@ -1741,7 +1827,10 @@ if(ka)ka.textContent=kmSt.q>0?Math.round(kmSt.c/kmSt.q*100)+'%':'0%';
 
 
 <div class="page">
-  <div class="xp-chip"><div class="xp-dot"></div><span class="xp-val" id="xpv">0</span></div>
+  <div class="topbar fu d1">
+    
+    <div class="page-title">模擬考試</div>
+    <div class="xp-chip"><div class="xp-dot"></div><span class="xp-val" id="xpv">0</span></div>
   </div>
   <div id="main"></div>
 </div>
@@ -2364,7 +2453,10 @@ renderSelect();
 </div>
 <div class="page-panel" id="panel-weakness">
 <div class="page">
-  <div class="xp-chip"><div class="xp-dot"></div><span class="xp-val" id="xpv">0</span></div>
+  <div class="topbar fu d1">
+    
+    <div class="page-title">弱點分析</div>
+    <div class="xp-chip"><div class="xp-dot"></div><span class="xp-val" id="xpv">0</span></div>
   </div>
 
   <div id="main-content"></div>
@@ -2737,7 +2829,10 @@ renderAll();
 </div>
 <div class="page-panel" id="panel-history">
 <div class="page">
-  <div class="xp-chip"><div class="xp-dot"></div><span class="xp-val" id="xpv">0</span></div>
+  <div class="topbar fu d1">
+    
+    <div class="page-title">歷史紀錄</div>
+    <div class="xp-chip"><div class="xp-dot"></div><span class="xp-val" id="xpv">0</span></div>
   </div>
 
   <div class="range-row fu d2">
@@ -3108,7 +3203,6 @@ injectDemo();
 render();
 </script>
 </div>
-
 <div class="page-panel" id="panel-settings">
   <div class="settings-wrap">
     <div class="settings-title">設定</div>
@@ -3138,126 +3232,13 @@ render();
       <div class="settings-sec-sub">清除所有學習紀錄、XP、答題歷史。此操作無法復原。</div>
       <button class="s-btn danger" onclick="confirmReset()">清除所有資料</button>
     </div>
-    <div class="settings-section">
-      <div class="settings-sec-title">關於</div>
-      <div style="font-size:13px;color:var(--text2);line-height:1.7;">
-        <div>版本：1.0.0</div>
-        <div style="margin-top:4px;">考試目標：英檢初級、日檢 N4、關務三等財稅行政</div>
-      </div>
-    </div>
   </div>
 </div>
 </div></div>
 
 <script>
-// ── GLOBAL STATE ──
-const LEVELS=[
-  {lv:1,name:'初心者',xp:0},{lv:2,name:'見習學者',xp:200},
-  {lv:3,name:'努力中的人',xp:500},{lv:4,name:'知識探索者',xp:1000},
-  {lv:5,name:'備考戰士',xp:2000},{lv:6,name:'學習冒險家',xp:3500},
-  {lv:7,name:'考試挑戰者',xp:5500},{lv:8,name:'知識獵人',xp:8000},
-  {lv:9,name:'精通學者',xp:12000},{lv:10,name:'傳說備考士',xp:18000},
-];
-function getLv(xp){let r=LEVELS[0];for(const l of LEVELS)if(xp>=l.xp)r=l;return r;}
-function getNextLv(xp){const cur=getLv(xp);const next=LEVELS.find(l=>l.lv===cur.lv+1);return next||cur;}
-
-function readState(){try{return JSON.parse(localStorage.getItem('lq3'))||{};}catch(e){return {};}}
-
-const PAGE_TITLES={dashboard:'備考儀表板',quiz:'每日測驗',mock:'模擬考試',weakness:'弱點分析',history:'歷史紀錄',settings:'設定'};
-let curPage='dashboard';
-
-// ── NAVIGATE ──
-function goPage(page){
-  document.getElementById('nav-'+curPage)?.classList.remove('active');
-  document.getElementById('panel-'+curPage)?.classList.remove('active');
-  curPage=page;
-  document.getElementById('nav-'+page)?.classList.add('active');
-  const panel=document.getElementById('panel-'+page);
-  if(panel){
-    panel.classList.add('active');
-    panel.scrollTop=0;
-  }
-  document.getElementById('mobile-title').textContent=PAGE_TITLES[page]||page;
-  closeSidebar();
-  refreshSidebar();
-  // run page init if needed
-  if(page==='weakness')renderAll&&renderAll();
-  if(page==='history')render&&render();
-  if(page==='settings'){loadApiStatus();renderExamDates();}
-}
-
-// ── SIDEBAR ──
-function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show');}
-function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show');}
-
-function refreshSidebar(){
-  const S=readState();
-  const xp=S.xp||0;
-  const lv=getLv(xp);
-  const nxt=getNextLv(xp);
-  const xpIn=xp-lv.xp;
-  const xpNeed=nxt.xp-lv.xp;
-  const pct=xpNeed>0?Math.round(xpIn/xpNeed*100):100;
-  const sbxp=document.getElementById('sb-xp');if(sbxp)sbxp.textContent=xp.toLocaleString()+' XP';
-  const sblv=document.getElementById('sb-lv');if(sblv)sblv.textContent=`Lv.${lv.lv} ${lv.name}`;
-  const sbnxt=document.getElementById('sb-xp-next');if(sbnxt)sbnxt.textContent=nxt.lv>lv.lv?`${xpIn}/${xpNeed}`:'MAX';
-  const sbbar=document.getElementById('sb-xp-bar');if(sbbar)sbbar.style.width=pct+'%';
-  const sbst=document.getElementById('sb-streak');if(sbst)sbst.textContent=S.streak||0;
-  const mxp=document.getElementById('mobile-xp');if(mxp)mxp.textContent=xp.toLocaleString()+' XP';
-}
-
-// ── GLOBAL TOAST ──
-let _tt;
-function gToast(m){const t=document.getElementById('g-toast');t.textContent=m;t.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('show'),2400);}
-
-// ── GLOBAL COIN ──
-function gCoin(x,y){const c=document.createElement('div');c.className='coin-el';c.style.left=(x+(Math.random()-.5)*22)+'px';c.style.top=y+'px';document.getElementById('g-coin-layer').appendChild(c);setTimeout(()=>c.remove(),1000);}
-function gBurstCoins(){for(let i=0;i<14;i++)setTimeout(()=>gCoin(Math.random()*window.innerWidth,window.innerHeight*.4+Math.random()*80),i*55);}
-
-// ── SETTINGS ──
-const EXAM_KEYS=[{key:'gr',label:'英檢初級 聽讀'},{key:'gw',label:'英檢初級 說寫'},{key:'jp',label:'日檢 N4'},{key:'km',label:'關務三等特考'}];
-function daysUntilG(ds){if(!ds)return null;const n=new Date();n.setHours(0,0,0,0);const t=new Date(ds);t.setHours(0,0,0,0);return Math.ceil((t-n)/86400000);}
-function loadApiStatus(){
-  const key=localStorage.getItem('lq_api_key');
-  const dot=document.getElementById('api-dot');const txt=document.getElementById('api-status-text');const inp=document.getElementById('api-input');
-  if(!dot)return;
-  if(key){dot.className='api-dot ok';txt.textContent='已設定（'+key.slice(0,12)+'...）';inp.placeholder='已設定，輸入新 Key 覆蓋';}
-  else{dot.className='api-dot missing';txt.textContent='尚未設定';}
-}
-function saveApiKey(){
-  const val=document.getElementById('api-input').value.trim();
-  if(!val){gToast('請輸入 API Key');return;}
-  if(!val.startsWith('sk-ant-')){gToast('Key 格式不正確，應以 sk-ant- 開頭');return;}
-  localStorage.setItem('lq_api_key',val);
-  document.getElementById('api-input').value='';
-  loadApiStatus();gToast('API Key 已儲存');
-}
-function clearApiKey(){localStorage.removeItem('lq_api_key');document.getElementById('api-input').value='';loadApiStatus();gToast('已清除');}
-function renderExamDates(){
-  const S=readState();const exams=S.exams||{};const grid=document.getElementById('edc-grid');if(!grid)return;
-  grid.innerHTML=EXAM_KEYS.map(e=>{const ex=exams[e.key]||{};const d=daysUntilG(ex.date);return`<div class="edc-card"><div class="edc-name">${e.label}</div><input class="edc-in" id="edc-${e.key}" type="date" value="${ex.date||''}"><div class="edc-days">${d!==null?`距今 ${d} 天`:'日期未設定'}</div></div>`;}).join('');
-}
-function saveExamDates(){
-  const S=readState();if(!S.exams)S.exams={};
-  EXAM_KEYS.forEach(e=>{const v=document.getElementById('edc-'+e.key)?.value;if(!S.exams[e.key])S.exams[e.key]={name:e.label};S.exams[e.key].date=v||null;});
-  localStorage.setItem('lq3',JSON.stringify(S));renderExamDates();gToast('考試日期已儲存');
-  // refresh dashboard
-  if(typeof render==='function')render();
-}
-function confirmReset(){
-  if(confirm('確定要清除所有學習資料嗎？此操作無法復原。')){
-    localStorage.removeItem('lq3');gToast('已清除所有資料');refreshSidebar();
-    if(typeof render==='function')render();
-  }
-}
-
-// ── INIT ──
-refreshSidebar();
-setInterval(refreshSidebar,5000);
-</script>
-
-<script>
-/* === dashboard page script === */
+try{
+/* == dashboard script == */
 
 const DEFAULTS={gr:{name:'英檢初級 聽讀',date:'2026-06-06'},gw:{name:'英檢初級 說寫',date:'2026-09-12'},jp:{name:'日檢 N4',date:'2026-12-06'},km:{name:'關務三等特考',date:'2027-04-01'}};
 const XPS=[30,25,35,20];
@@ -3379,10 +3360,12 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 
 render();
 
+}catch(e){console.error("dashboard script error:",e);}
 </script>
 
 <script>
-/* === quiz page script === */
+try{
+/* == quiz script == */
 
 // ── STATE ──
 function defS(){return{xp:0,level:1,subjectStats:{},wrongBank:{},jpLevel:'N5'};}
@@ -3768,10 +3751,12 @@ const kq=document.getElementById('ss-km-q'),ka=document.getElementById('ss-km-a'
 if(kq)kq.textContent=kmSt.q;
 if(ka)ka.textContent=kmSt.q>0?Math.round(kmSt.c/kmSt.q*100)+'%':'0%';
 
+}catch(e){console.error("quiz script error:",e);}
 </script>
 
 <script>
-/* === mock page script === */
+try{
+/* == mock script == */
 
 // ── STATE ──
 function defS(){return{xp:0,mockHistory:[]};}
@@ -4387,10 +4372,12 @@ function showToast(m){const t=document.getElementById('toast');t.textContent=m;t
 document.getElementById('xpv').textContent=(S.xp||0).toLocaleString();
 renderSelect();
 
+}catch(e){console.error("mock script error:",e);}
 </script>
 
 <script>
-/* === weakness page script === */
+try{
+/* == weakness script == */
 
 // ── STATE ──
 function defS(){return{xp:0,level:1,subjectStats:{},wrongBank:{},jpLevel:'N5'};}
@@ -4755,10 +4742,12 @@ injectDemo();
 
 renderAll();
 
+}catch(e){console.error("weakness script error:",e);}
 </script>
 
 <script>
-/* === history page script === */
+try{
+/* == history script == */
 
 // ── STATE ──
 function defS(){return{xp:0,history:[]};}
@@ -5116,6 +5105,16 @@ function injectDemo(){
 injectDemo();
 render();
 
+}catch(e){console.error("history script error:",e);}
+</script>
+
+<script>
+// Init after all scripts loaded
+document.addEventListener('DOMContentLoaded', function(){
+  refreshSidebar();
+  setInterval(refreshSidebar, 5000);
+  if(typeof render === 'function') render();
+});
 </script>
 </body>
 </html>
