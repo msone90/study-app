@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>弱點分析</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f7f6f2; --bg2:#ffffff; --bg3:#eeece6;
+  --text:#1e1c18; --text2:#6b6860; --text3:#a8a59e;
+  --border:rgba(0,0,0,0.08); --border2:rgba(0,0,0,0.14);
+  --radius:16px; --radius-sm:10px;
+  --shadow:0 2px 10px rgba(0,0,0,0.06); --shadow-md:0 4px 20px rgba(0,0,0,0.09);
+  --c-gr:#e05252; --c-gr-bg:#fdf2f2; --c-gr-bd:#f5c6c6;
+  --c-jp:#2a9d8f; --c-jp-bg:#edf7f6; --c-jp-bd:#b2deda;
+  --c-km:#5a4fcf; --c-km-bg:#f2f1fd; --c-km-bd:#cac7f5;
+  --c-sk:#3a9e5f; --c-sk-bg:#edf7f2; --c-sk-bd:#b2ddc5;
+  --c-xp:#d4a017;
+  --ok:#16a34a; --ok-bg:#f0fdf4; --ok-bd:#86efac;
+  --ng:#dc2626; --ng-bg:#fef2f2; --ng-bd:#fca5a5;
+  --warn:#d97706; --warn-bg:#fffbeb; --warn-bd:#fde68a;
+  --font-d:'Nunito','Noto Sans TC',sans-serif;
+  --font-b:'Noto Sans TC',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{background:var(--bg);}
+body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height:100vh;}
+.page{max-width:900px;margin:0 auto;padding:32px 28px 80px;}
+@media(max-width:600px){.page{padding:20px 16px 64px;}}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;}
+.back-btn{display:flex;align-items:center;gap:6px;background:var(--bg2);border:1.5px solid var(--border2);border-radius:24px;padding:8px 16px;font-size:13px;font-weight:700;font-family:var(--font-d);color:var(--text2);cursor:pointer;text-decoration:none;transition:box-shadow .2s;}
+.back-btn:hover{box-shadow:var(--shadow);}
+.page-title{font-family:var(--font-d);font-size:20px;font-weight:900;}
+.xp-chip{display:flex;align-items:center;gap:6px;background:var(--bg2);border:1.5px solid var(--border2);border-radius:24px;padding:7px 14px;}
+.xp-dot{width:14px;height:14px;border-radius:50%;background:var(--c-xp);}
+.xp-val{font-family:var(--font-d);font-size:14px;font-weight:800;color:var(--c-xp);}
+
+/* SEC HEAD */
+.sec-h{font-family:var(--font-d);font-size:11px;font-weight:800;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;}
+
+/* AI SUGGESTION */
+.ai-box{background:var(--bg2);border:1.5px solid #bfdbfe;border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);margin-bottom:28px;}
+.ai-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.ai-dot{width:7px;height:7px;border-radius:50%;background:#3b82f6;}
+.ai-tag{font-size:11px;font-weight:800;color:#3b82f6;font-family:var(--font-d);letter-spacing:.4px;}
+.ai-text{font-size:13px;color:#1e3a5f;line-height:1.65;}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+@media(max-width:700px){.grid{grid-template-columns:1fr;}}
+
+/* SUBJECT PANEL */
+.subj-panel{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);}
+.subj-panel-head{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.subj-badge{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:11px;font-weight:900;flex-shrink:0;}
+.subj-badge.gr{background:var(--c-gr-bg);color:var(--c-gr);}
+.subj-badge.jp{background:var(--c-jp-bg);color:var(--c-jp);}
+.subj-badge.km{background:var(--c-km-bg);color:var(--c-km);}
+.subj-badge.sk{background:var(--c-sk-bg);color:var(--c-sk);}
+.subj-title{font-family:var(--font-d);font-size:15px;font-weight:800;}
+.subj-overall{font-family:var(--font-d);font-size:13px;font-weight:700;margin-left:auto;flex-shrink:0;}
+.subj-overall.good{color:var(--ok);}
+.subj-overall.warn{color:var(--warn);}
+.subj-overall.bad{color:var(--ng);}
+
+/* BAR ROWS */
+.bar-row{margin-bottom:12px;}
+.bar-row:last-child{margin-bottom:0;}
+.bar-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+.bar-name{font-size:12px;font-weight:700;color:var(--text);}
+.bar-stats{font-size:11px;color:var(--text3);font-family:var(--font-d);}
+.bar-track{height:8px;background:var(--bg3);border-radius:10px;overflow:hidden;position:relative;}
+.bar-fill{height:100%;border-radius:10px;transition:width .8s cubic-bezier(.4,0,.2,1);}
+.bar-wrong-count{font-size:10px;color:var(--ng);font-family:var(--font-d);font-weight:700;margin-top:3px;}
+
+/* WRONG QUESTIONS */
+.wrong-panel{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-top:20px;}
+.wrong-panel-head{font-family:var(--font-d);font-size:14px;font-weight:800;color:var(--ng);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.wrong-count-badge{background:var(--ng-bg);border:1px solid var(--ng-bd);border-radius:20px;padding:2px 10px;font-size:11px;color:var(--ng);font-family:var(--font-d);font-weight:700;}
+.wrong-item{padding:10px 0;border-bottom:1px solid var(--border);}
+.wrong-item:last-child{border-bottom:none;padding-bottom:0;}
+.wrong-item-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:3px;}
+.wrong-q{font-size:13px;font-weight:700;color:var(--text);flex:1;line-height:1.4;}
+.wrong-freq{font-family:var(--font-d);font-size:11px;font-weight:700;color:var(--ng);background:var(--ng-bg);border-radius:20px;padding:2px 8px;flex-shrink:0;}
+.wrong-subj-tag{font-size:10px;color:var(--text3);font-family:var(--font-d);}
+.wrong-ans{font-size:12px;color:var(--text2);margin-top:3px;}
+.wrong-ans span{color:var(--ok);font-weight:700;}
+.empty-msg{font-size:13px;color:var(--text3);text-align:center;padding:20px 0;}
+
+/* RADAR (locked) */
+.radar-panel{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-top:20px;position:relative;overflow:hidden;}
+.radar-lock{position:absolute;inset:0;background:rgba(247,246,242,0.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;backdrop-filter:blur(2px);border-radius:var(--radius);}
+.radar-lock-icon{width:44px;height:44px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;}
+.radar-lock-icon svg{width:20px;height:20px;fill:var(--text3);}
+.radar-lock-title{font-family:var(--font-d);font-size:15px;font-weight:800;color:var(--text2);}
+.radar-lock-sub{font-size:12px;color:var(--text3);text-align:center;max-width:200px;line-height:1.5;}
+.radar-lock-lv{background:var(--c-km-bg);color:var(--c-km);border-radius:20px;padding:4px 14px;font-family:var(--font-d);font-size:12px;font-weight:800;}
+canvas#radar-canvas{display:block;width:100%;max-width:360px;margin:0 auto;}
+
+/* NO DATA */
+.no-data-box{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);padding:40px 24px;box-shadow:var(--shadow);text-align:center;}
+.no-data-title{font-family:var(--font-d);font-size:17px;font-weight:800;margin-bottom:8px;}
+.no-data-sub{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:20px;}
+.go-quiz-btn{display:inline-block;padding:12px 28px;background:var(--c-km);color:white;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:var(--font-d);cursor:pointer;text-decoration:none;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.fu{animation:fadeUp .38s ease both;}
+.d1{animation-delay:.04s}.d2{animation-delay:.1s}.d3{animation-delay:.16s}.d4{animation-delay:.22s}.d5{animation-delay:.28s}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="topbar fu d1">
+    <a class="back-btn" href="dashboard.html">← 返回儀表板</a>
+    <div class="page-title">弱點分析</div>
+    <div class="xp-chip"><div class="xp-dot"></div><span class="xp-val" id="xpv">0</span></div>
+  </div>
+
+  <div id="main-content"></div>
+</div>
+
+<script>
+// ── STATE ──
+function defS(){return{xp:0,level:1,subjectStats:{},wrongBank:{},jpLevel:'N5'};}
+let S=(()=>{try{return{...defS(),...JSON.parse(localStorage.getItem('lq3'))};}catch(e){return defS();}})();
+
+const LEVELS=[
+  {lv:1,xp:0},{lv:2,xp:200},{lv:3,xp:500},{lv:4,xp:1000},
+  {lv:5,xp:2000},{lv:6,xp:3500},{lv:7,xp:5500},{lv:8,xp:8000},
+  {lv:9,xp:12000},{lv:10,xp:18000},
+];
+function getLv(xp){let r=LEVELS[0];for(const l of LEVELS)if(xp>=l.xp)r=l;return r;}
+const curLv=getLv(S.xp).lv;
+
+// ── SUBJECT DEFINITIONS ──
+// Map wrongBank keys → display info
+const SUBJECTS=[
+  {
+    key:'gr', label:'全民英檢初級', cls:'gr',
+    subs:[
+      {key:'gr-listen', label:'聽力測驗'},
+      {key:'gr-read',   label:'閱讀測驗'},
+      {key:'gr-write',  label:'寫作測驗'},
+      {key:'gr-speak',  label:'口說測驗'},
+    ]
+  },
+  {
+    key:'jp', label:'日文 N5 → N4', cls:'jp',
+    subs:[
+      {key:'jp', label:'單字／文法／讀解'},
+    ]
+  },
+  {
+    key:'km', label:'關務三等特考', cls:'km',
+    subs:[
+      {key:'km-law',     label:'法學知識'},
+      {key:'km-eng',     label:'外國文（英文）'},
+      {key:'km-admin',   label:'行政法'},
+      {key:'km-finance', label:'財政學'},
+      {key:'km-trade',   label:'國際貿易實務'},
+      {key:'km-chinese', label:'國文'},
+    ]
+  },
+  {
+    key:'sk', label:'素描基礎', cls:'sk',
+    subs:[
+      {key:'sk', label:'每日挑戰打卡'},
+    ]
+  },
+];
+
+// Collect stats per sub-key
+function getSubStats(key){
+  const wb=(S.wrongBank&&S.wrongBank[key])||[];
+  const st=(S.subjectStats&&S.subjectStats[key])||{q:0,c:0};
+  // also check parent key for gr/km
+  return {wrongCount:wb.length, total:st.q, correct:st.c};
+}
+
+function accRate(total,correct){
+  if(!total)return null;
+  return Math.round(correct/total*100);
+}
+
+function rateClass(r){
+  if(r===null)return '';
+  if(r>=80)return 'good';
+  if(r>=60)return 'warn';
+  return 'bad';
+}
+
+// ── COLLECT ALL WRONG QUESTIONS ──
+// We store wrong question indices in wrongBank per sub-key
+// We'll also maintain a "wrongDetails" map in state if available
+function getAllWrong(){
+  const list=[];
+  if(!S.wrongBank)return list;
+  const SUBJ_LABELS={'gr-listen':'英檢聽力','gr-read':'英檢閱讀','gr-write':'英檢寫作','gr-speak':'英檢口說','jp':'日文 N5','sk':'素描','km-law':'法學知識','km-eng':'外國文（英文）','km-admin':'行政法','km-finance':'財政學','km-trade':'國際貿易實務','km-chinese':'國文'};
+  Object.keys(S.wrongBank).forEach(k=>{
+    const ids=S.wrongBank[k];
+    if(!ids||!ids.length)return;
+    ids.forEach(id=>{
+      list.push({subj:SUBJ_LABELS[k]||k, id, key:k});
+    });
+  });
+  return list;
+}
+
+// ── AI SUGGESTION ──
+function buildAiMsg(){
+  // Find weakest sub
+  let worstLabel='', worstRate=101, worstCount=0;
+  SUBJECTS.forEach(s=>{
+    s.subs.forEach(sub=>{
+      const st=getSubStats(sub.key);
+      const r=accRate(st.total,st.correct);
+      const wc=st.wrongCount;
+      if(r!==null&&r<worstRate){worstRate=r;worstLabel=sub.label;worstCount=wc;}
+      else if(r===null&&wc>worstCount){worstCount=wc;worstLabel=sub.label;}
+    });
+  });
+  const totalWrong=Object.values(S.wrongBank||{}).reduce((a,b)=>a+(b?b.length:0),0);
+  if(totalWrong===0&&!Object.values(S.subjectStats||{}).some(s=>s.q>0)){
+    return '還沒有任何答題紀錄。先去完成幾次測驗，弱點分析才能發揮作用！';
+  }
+  if(totalWrong===0){
+    return '目前沒有錯題紀錄，表現很好！繼續保持，定期測驗才能維持狀態。';
+  }
+  if(worstLabel){
+    return `根據目前紀錄，「${worstLabel}」是最需要加強的項目（${worstRate<101?`正確率 ${worstRate}%，`:''}錯題 ${worstCount} 題）。建議今天優先練習這個科目。`;
+  }
+  return `目前共有 ${totalWrong} 題錯誤紀錄。這些題目在下次測驗時會優先出現，持續練習直到完全掌握。`;
+}
+
+// ── RENDER BAR ──
+function renderBar(sub, cls){
+  const st=getSubStats(sub.key);
+  const r=accRate(st.total,st.correct);
+  const wc=st.wrongCount;
+  const fillColor={gr:'var(--c-gr)',jp:'var(--c-jp)',km:'var(--c-km)',sk:'var(--c-sk)'}[cls]||'var(--c-km)';
+  const pct=r!==null?r:0;
+  const hasData=st.total>0||wc>0;
+
+  return `<div class="bar-row" id="bar-${sub.key}">
+    <div class="bar-meta">
+      <span class="bar-name">${sub.label}</span>
+      <span class="bar-stats">${st.total>0?`${st.correct}/${st.total} 題正確`:'尚未作答'}</span>
+    </div>
+    <div class="bar-track">
+      <div class="bar-fill" style="width:0%;background:${r!==null?(r>=80?'var(--ok)':r>=60?'var(--warn)':'var(--ng)'):'var(--bg3)'}" data-pct="${pct}" data-color="${r!==null?(r>=80?'var(--ok)':r>=60?'var(--warn)':'var(--ng)'):'var(--bg3)'}"></div>
+    </div>
+    ${wc>0?`<div class="bar-wrong-count">錯題紀錄：${wc} 題（下次優先出現）</div>`:''}
+  </div>`;
+}
+
+// ── RENDER SUBJECT PANEL ──
+function renderSubjPanel(s){
+  // overall stats for this subject
+  let totalQ=0,totalC=0,totalWrong=0;
+  s.subs.forEach(sub=>{
+    const st=getSubStats(sub.key);
+    totalQ+=st.total; totalC+=st.correct; totalWrong+=st.wrongCount;
+  });
+  const overallRate=accRate(totalQ,totalC);
+  const rClass=rateClass(overallRate);
+  const rLabel=overallRate!==null?`${overallRate}%`:'—';
+
+  return `<div class="subj-panel fu d3">
+    <div class="subj-panel-head">
+      <div class="subj-badge ${s.cls}">${s.label.slice(0,2)}</div>
+      <div class="subj-title">${s.label}</div>
+      <div class="subj-overall ${rClass}">${rLabel}</div>
+    </div>
+    ${s.subs.map(sub=>renderBar(sub,s.cls)).join('')}
+  </div>`;
+}
+
+// ── RENDER WRONG LIST ──
+function renderWrongPanel(){
+  const all=getAllWrong();
+  if(!all.length){
+    return `<div class="wrong-panel fu d4">
+      <div class="wrong-panel-head">錯題紀錄 <span class="wrong-count-badge">0 題</span></div>
+      <div class="empty-msg">目前沒有錯題紀錄，繼續保持！</div>
+    </div>`;
+  }
+  // Group by subject
+  const groups={};
+  all.forEach(w=>{
+    if(!groups[w.subj])groups[w.subj]=[];
+    groups[w.subj].push(w);
+  });
+  const totalCount=all.length;
+  let html=`<div class="wrong-panel fu d4">
+    <div class="wrong-panel-head">錯題紀錄 <span class="wrong-count-badge">${totalCount} 題</span></div>`;
+  Object.keys(groups).forEach(subj=>{
+    const items=groups[subj];
+    html+=`<div style="margin-bottom:4px;"><div style="font-size:11px;font-weight:700;color:var(--text3);font-family:var(--font-d);letter-spacing:.5px;margin-bottom:6px;margin-top:10px;">${subj}</div>`;
+    items.forEach(w=>{
+      html+=`<div class="wrong-item">
+        <div class="wrong-item-top">
+          <div class="wrong-q">題目 #${w.id+1}（${subj}）</div>
+          <div class="wrong-freq">待加強</div>
+        </div>
+        <div class="wrong-ans">下次測驗「${subj}」時將優先出現此題</div>
+      </div>`;
+    });
+    html+=`</div>`;
+  });
+  html+=`</div>`;
+  return html;
+}
+
+// ── RADAR CHART (Lv8+) ──
+function renderRadar(){
+  const locked=curLv<8;
+  // Collect data points for 4 main subjects
+  const subjects=['英檢初級','日文','關務特考','素描'];
+  const keys=[['gr-listen','gr-read'],['jp'],['km-law','km-eng','km-admin','km-finance','km-trade','km-chinese'],['sk']];
+  const values=keys.map(ks=>{
+    let q=0,c=0;
+    ks.forEach(k=>{const st=getSubStats(k);q+=st.total;c+=st.correct;});
+    return q>0?Math.round(c/q*100):0;
+  });
+
+  let html=`<div class="radar-panel fu d5">
+    <div class="sec-h" style="margin-bottom:16px;">能力雷達圖</div>
+    <canvas id="radar-canvas" width="360" height="300"></canvas>`;
+  if(locked){
+    html+=`<div class="radar-lock">
+      <div class="radar-lock-icon"><svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg></div>
+      <div class="radar-lock-title">尚未解鎖</div>
+      <div class="radar-lock-sub">累積到 Lv.8「知識獵人」後解鎖能力雷達圖</div>
+      <div class="radar-lock-lv">目前 Lv.${curLv} → 解鎖需 Lv.8</div>
+    </div>`;
+  }
+  html+=`</div>`;
+
+  if(!locked){
+    // Draw radar after DOM insert
+    setTimeout(()=>drawRadar(subjects,values),100);
+  } else {
+    // Draw blurred placeholder
+    setTimeout(()=>drawRadar(subjects,[45,60,30,80],true),100);
+  }
+  return html;
+}
+
+function drawRadar(labels,values,blur=false){
+  const canvas=document.getElementById('radar-canvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const W=360,H=300,cx=W/2,cy=H/2,r=100;
+  const n=labels.length;
+  const angles=labels.map((_,i)=>-Math.PI/2+(2*Math.PI*i/n));
+  ctx.clearRect(0,0,W,H);
+  if(blur){ctx.globalAlpha=0.18;}
+  // Grid
+  for(let ring=1;ring<=5;ring++){
+    ctx.beginPath();
+    angles.forEach((a,i)=>{
+      const rr=r*ring/5;
+      const x=cx+rr*Math.cos(a),y=cy+rr*Math.sin(a);
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    });
+    ctx.closePath();
+    ctx.strokeStyle='rgba(0,0,0,0.08)';ctx.lineWidth=1;ctx.stroke();
+  }
+  // Axes
+  angles.forEach(a=>{
+    ctx.beginPath();ctx.moveTo(cx,cy);
+    ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));
+    ctx.strokeStyle='rgba(0,0,0,0.1)';ctx.lineWidth=1;ctx.stroke();
+  });
+  // Data
+  ctx.beginPath();
+  angles.forEach((a,i)=>{
+    const rr=r*(values[i]||0)/100;
+    const x=cx+rr*Math.cos(a),y=cy+rr*Math.sin(a);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.closePath();
+  ctx.fillStyle='rgba(90,79,207,0.15)';ctx.fill();
+  ctx.strokeStyle='rgba(90,79,207,0.7)';ctx.lineWidth=2;ctx.stroke();
+  // Dots
+  angles.forEach((a,i)=>{
+    const rr=r*(values[i]||0)/100;
+    const x=cx+rr*Math.cos(a),y=cy+rr*Math.sin(a);
+    ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);
+    ctx.fillStyle='#5a4fcf';ctx.fill();
+  });
+  // Labels
+  ctx.globalAlpha=blur?0.2:1;
+  ctx.font='bold 12px Nunito, sans-serif';
+  ctx.fillStyle='#1e1c18';ctx.textAlign='center';ctx.textBaseline='middle';
+  angles.forEach((a,i)=>{
+    const lx=cx+(r+24)*Math.cos(a),ly=cy+(r+24)*Math.sin(a);
+    ctx.fillText(labels[i],lx,ly);
+    if(!blur){
+      ctx.font='11px Nunito, sans-serif';
+      ctx.fillStyle='#5a4fcf';
+      ctx.fillText(values[i]+'%',lx,ly+15);
+      ctx.fillStyle='#1e1c18';
+      ctx.font='bold 12px Nunito, sans-serif';
+    }
+  });
+  ctx.globalAlpha=1;
+}
+
+// ── ANIMATE BARS ──
+function animateBars(){
+  document.querySelectorAll('.bar-fill[data-pct]').forEach(el=>{
+    const pct=parseInt(el.dataset.pct)||0;
+    setTimeout(()=>{el.style.width=pct+'%';},120);
+  });
+}
+
+// ── CHECK HAS DATA ──
+function hasAnyData(){
+  const hasStat=S.subjectStats&&Object.values(S.subjectStats).some(s=>s&&s.q>0);
+  const hasWrong=S.wrongBank&&Object.values(S.wrongBank).some(a=>a&&a.length>0);
+  return hasStat||hasWrong;
+}
+
+// ── RENDER ALL ──
+function renderAll(){
+  document.getElementById('xpv').textContent=S.xp.toLocaleString();
+
+  if(!hasAnyData()){
+    document.getElementById('main-content').innerHTML=`
+      <div class="no-data-box fu d2">
+        <div class="no-data-title">還沒有分析資料</div>
+        <div class="no-data-sub">完成幾次測驗後，這裡會自動顯示你的弱點分析、各科正確率和錯題紀錄。</div>
+        <a class="go-quiz-btn" href="quiz.html">前往每日測驗</a>
+      </div>`;
+    return;
+  }
+
+  // AI suggestion
+  let html=`<div class="ai-box fu d2">
+    <div class="ai-head"><div class="ai-dot"></div><div class="ai-tag">AI 弱點分析</div></div>
+    <div class="ai-text">${buildAiMsg()}</div>
+  </div>`;
+
+  // Subject panels in 2-col grid
+  html+=`<div class="sec-h fu d3">各科正確率</div>`;
+  html+=`<div class="grid">`;
+  SUBJECTS.forEach(s=>{ html+=renderSubjPanel(s); });
+  html+=`</div>`;
+
+  // Wrong questions
+  html+=renderWrongPanel();
+
+  // Radar
+  html+=`<div class="sec-h fu d5" style="margin-top:28px;">能力雷達圖</div>`;
+  html+=renderRadar();
+
+  document.getElementById('main-content').innerHTML=html;
+  animateBars();
+}
+
+// ── DEMO DATA (for preview) ──
+// Inject some sample data so the page isn't empty on first view
+function injectDemo(){
+  if(hasAnyData())return;
+  S.subjectStats={
+    gr:{q:20,c:14},
+    jp:{q:30,c:22},
+    km:{q:15,c:9},
+    sk:{q:5,c:5},
+  };
+  S.wrongBank={
+    'gr-listen':[0,2,4],
+    'gr-read':[1,3],
+    'jp':[2,5,7],
+    'km-law':[0,2],
+    'km-admin':[1],
+  };
+}
+
+// Comment out below line to disable demo data
+injectDemo();
+
+renderAll();
+</script>
+</body>
+</html>

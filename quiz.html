@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>每日測驗</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f7f6f2; --bg2:#ffffff; --bg3:#eeece6;
+  --text:#1e1c18; --text2:#6b6860; --text3:#a8a59e;
+  --border:rgba(0,0,0,0.08); --border2:rgba(0,0,0,0.14);
+  --radius:16px; --radius-sm:10px;
+  --shadow:0 2px 10px rgba(0,0,0,0.06); --shadow-md:0 4px 20px rgba(0,0,0,0.09);
+  --c-gr:#e05252; --c-gr-bg:#fdf2f2; --c-gr-bd:#f5c6c6;
+  --c-gw:#d4841a; --c-gw-bg:#fdf6ec; --c-gw-bd:#f5d9a8;
+  --c-jp:#2a9d8f; --c-jp-bg:#edf7f6; --c-jp-bd:#b2deda;
+  --c-km:#5a4fcf; --c-km-bg:#f2f1fd; --c-km-bd:#cac7f5;
+  --c-sk:#3a9e5f; --c-sk-bg:#edf7f2; --c-sk-bd:#b2ddc5;
+  --c-xp:#d4a017;
+  --ok:#16a34a; --ok-bg:#f0fdf4; --ok-bd:#86efac;
+  --ng:#dc2626; --ng-bg:#fef2f2; --ng-bd:#fca5a5;
+  --font-d:'Nunito','Noto Sans TC',sans-serif;
+  --font-b:'Noto Sans TC',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{background:var(--bg);}
+body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height:100vh;}
+.page{max-width:760px;margin:0 auto;padding:32px 28px 80px;}
+@media(max-width:600px){.page{padding:20px 16px 64px;}}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;}
+.back-btn{display:flex;align-items:center;gap:6px;background:var(--bg2);border:1.5px solid var(--border2);border-radius:24px;padding:8px 16px;font-size:13px;font-weight:700;font-family:var(--font-d);color:var(--text2);cursor:pointer;text-decoration:none;transition:box-shadow .2s;}
+.back-btn:hover{box-shadow:var(--shadow);}
+.page-title{font-family:var(--font-d);font-size:20px;font-weight:900;}
+.xp-chip{display:flex;align-items:center;gap:6px;background:var(--bg2);border:1.5px solid var(--border2);border-radius:24px;padding:7px 14px;}
+.xp-dot{width:14px;height:14px;border-radius:50%;background:var(--c-xp);}
+.xp-val{font-family:var(--font-d);font-size:14px;font-weight:800;color:var(--c-xp);}
+
+.screen{display:none;} .screen.active{display:block;}
+.sec-h{font-family:var(--font-d);font-size:11px;font-weight:800;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;}
+
+/* SUBJECT GRID */
+.subj-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:480px){.subj-grid{grid-template-columns:1fr;}}
+.subj-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;cursor:pointer;transition:transform .18s,box-shadow .18s;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+.subj-card::before{content:'';position:absolute;right:-16px;top:-16px;width:72px;height:72px;border-radius:50%;opacity:.08;}
+.subj-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+.subj-card:active{transform:scale(.98);}
+.subj-card.gr{border-color:var(--c-gr-bd);}.subj-card.gr::before{background:var(--c-gr);}
+.subj-card.gw{border-color:var(--c-gw-bd);}.subj-card.gw::before{background:var(--c-gw);}
+.subj-card.jp{border-color:var(--c-jp-bd);}.subj-card.jp::before{background:var(--c-jp);}
+.subj-card.km{border-color:var(--c-km-bd);}.subj-card.km::before{background:var(--c-km);}
+.subj-card.sk{border-color:var(--c-sk-bd);}.subj-card.sk::before{background:var(--c-sk);}
+.subj-icon{font-family:var(--font-d);font-size:11px;font-weight:900;width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;}
+.subj-card.gr .subj-icon{background:var(--c-gr-bg);color:var(--c-gr);}
+.subj-card.gw .subj-icon{background:var(--c-gw-bg);color:var(--c-gw);}
+.subj-card.jp .subj-icon{background:var(--c-jp-bg);color:var(--c-jp);}
+.subj-card.km .subj-icon{background:var(--c-km-bg);color:var(--c-km);}
+.subj-card.sk .subj-icon{background:var(--c-sk-bg);color:var(--c-sk);}
+.subj-name{font-family:var(--font-d);font-size:15px;font-weight:800;margin-bottom:3px;}
+.subj-sub{font-size:12px;color:var(--text2);line-height:1.4;}
+.subj-stats{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;gap:12px;}
+.subj-stat{font-size:11px;color:var(--text3);}
+.subj-stat span{font-family:var(--font-d);font-weight:700;color:var(--text2);}
+
+/* GEPT SUB */
+.gept-sub-list{display:flex;flex-direction:column;gap:8px;}
+.gept-sub-card{background:var(--bg2);border:1.5px solid var(--c-gr-bd);border-radius:var(--radius-sm);padding:14px 18px;cursor:pointer;transition:background .15s,transform .15s;}
+.gept-sub-card:hover{background:var(--c-gr-bg);transform:translateX(3px);}
+.gept-sub-name{font-family:var(--font-d);font-size:14px;font-weight:800;color:var(--c-gr);margin-bottom:2px;}
+.gept-sub-desc{font-size:12px;color:var(--text2);}
+.gept-tag{display:inline-block;font-size:10px;font-weight:700;font-family:var(--font-d);padding:2px 8px;border-radius:20px;margin-top:5px;}
+.gept-tag.listen{background:var(--c-gr-bg);color:var(--c-gr);}
+.gept-tag.read{background:#eef6ff;color:#3b82f6;}
+.gept-tag.write{background:#fef9ec;color:var(--c-xp);}
+.gept-tag.speak{background:var(--c-sk-bg);color:var(--c-sk);}
+
+/* KANMU SUB */
+.km-sub-list{display:flex;flex-direction:column;gap:8px;}
+.km-sub-card{background:var(--bg2);border:1.5px solid var(--c-km-bd);border-radius:var(--radius-sm);padding:14px 18px;cursor:pointer;transition:background .15s,transform .15s;}
+.km-sub-card:hover{background:var(--c-km-bg);transform:translateX(3px);}
+.km-sub-name{font-family:var(--font-d);font-size:14px;font-weight:800;color:var(--c-km);margin-bottom:2px;}
+.km-sub-desc{font-size:12px;color:var(--text2);}
+.km-tag{display:inline-block;font-size:10px;font-weight:700;font-family:var(--font-d);padding:2px 8px;border-radius:20px;margin-top:5px;margin-right:4px;}
+.km-tag.mc{background:var(--c-km-bg);color:var(--c-km);}
+.km-tag.essay{background:#fef9ec;color:var(--c-xp);}
+
+/* CONFIG */
+.count-row{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;}
+.count-btn{padding:7px 18px;border-radius:24px;border:1.5px solid var(--border2);background:var(--bg2);font-size:12px;font-weight:700;font-family:var(--font-d);color:var(--text2);cursor:pointer;transition:all .15s;}
+.count-btn.active{background:var(--c-km);border-color:var(--c-km);color:white;}
+.go-btn{width:100%;padding:15px;background:var(--c-km);color:white;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:var(--font-d);cursor:pointer;transition:opacity .15s;}
+.go-btn:hover{opacity:.9;}
+
+/* QUIZ */
+.quiz-header{margin-bottom:20px;}
+.quiz-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.q-tag{display:inline-flex;align-items:center;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700;font-family:var(--font-d);}
+.q-ctr{font-family:var(--font-d);font-size:13px;font-weight:700;color:var(--text3);}
+.prog-track{height:5px;background:var(--bg3);border-radius:10px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:10px;transition:width .4s cubic-bezier(.4,0,.2,1);}
+
+/* AUDIO PLAYER */
+.audio-box{background:var(--bg2);border:1.5px solid var(--c-gr-bd);border-radius:var(--radius);padding:16px 20px;margin-bottom:14px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);}
+.play-btn{width:44px;height:44px;border-radius:50%;background:var(--c-gr);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .15s;}
+.play-btn:hover{opacity:.85;}
+.play-btn svg{width:18px;height:18px;fill:white;}
+.audio-info{flex:1;}
+.audio-label{font-size:11px;color:var(--c-gr);font-family:var(--font-d);font-weight:800;margin-bottom:3px;}
+.audio-text{font-size:13px;color:var(--text);line-height:1.6;}
+.audio-hint{font-size:11px;color:var(--text3);margin-top:4px;}
+.replay-count{font-family:var(--font-d);font-size:11px;font-weight:700;color:var(--text3);}
+
+/* Q CARD */
+.q-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:16px;box-shadow:var(--shadow);}
+.q-type{font-size:11px;font-weight:700;color:var(--text3);font-family:var(--font-d);letter-spacing:.5px;margin-bottom:10px;}
+.q-text{font-size:17px;font-weight:700;line-height:1.55;color:var(--text);}
+.q-sub{font-size:13px;color:var(--text2);margin-top:8px;line-height:1.6;}
+.q-passage{font-size:13px;color:var(--text);margin-top:10px;line-height:1.7;background:var(--bg);border-radius:var(--radius-sm);padding:12px 14px;border-left:3px solid var(--border2);}
+
+/* OPTIONS with ABCD */
+.options{display:flex;flex-direction:column;gap:9px;margin-bottom:16px;}
+.opt{background:var(--bg2);border:1.5px solid var(--border2);border-radius:var(--radius-sm);padding:13px 16px;text-align:left;font-size:14px;font-family:var(--font-b);color:var(--text);cursor:pointer;transition:all .15s;width:100%;line-height:1.4;display:flex;align-items:flex-start;gap:12px;}
+.opt:hover:not(:disabled){background:var(--bg3);}
+.opt:disabled{cursor:default;}
+.opt-label{font-family:var(--font-d);font-size:13px;font-weight:800;width:20px;flex-shrink:0;color:var(--text3);}
+.opt-text{flex:1;}
+.opt.correct{background:var(--ok-bg);border-color:var(--ok-bd);}
+.opt.correct .opt-label{color:var(--ok);}
+.opt.correct .opt-text{color:var(--ok);font-weight:700;}
+.opt.wrong{background:var(--ng-bg);border-color:var(--ng-bd);}
+.opt.wrong .opt-label{color:var(--ng);}
+.opt.wrong .opt-text{color:var(--ng);font-weight:700;}
+.opt.reveal{background:var(--ok-bg);border-color:var(--ok-bd);}
+.opt.reveal .opt-label,.opt.reveal .opt-text{color:var(--ok);}
+
+/* EXPLAIN */
+.exbox{border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:14px;display:none;line-height:1.65;}
+.exbox.show{display:block;}
+.exbox.correct{background:var(--ok-bg);border:1.5px solid var(--ok-bd);}
+.exbox.wrong{background:var(--ng-bg);border:1.5px solid var(--ng-bd);}
+.ex-result{font-family:var(--font-d);font-size:13px;font-weight:800;margin-bottom:5px;}
+.exbox.correct .ex-result{color:var(--ok);}
+.exbox.wrong .ex-result{color:var(--ng);}
+.ex-text{font-size:13px;color:var(--text);line-height:1.7;}
+
+/* ESSAY */
+.essay-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:16px;box-shadow:var(--shadow);}
+.essay-badge{display:inline-block;font-size:10px;font-weight:800;font-family:var(--font-d);padding:3px 10px;border-radius:20px;margin-bottom:10px;}
+.essay-badge.write{background:#fef9ec;color:var(--c-xp);}
+.essay-badge.speak{background:var(--c-sk-bg);color:var(--c-sk);}
+.essay-q{font-size:16px;font-weight:700;line-height:1.55;margin-bottom:10px;}
+.essay-points{background:var(--bg);border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:var(--text2);line-height:1.75;margin-bottom:14px;}
+.essay-points strong{color:var(--text);font-weight:700;display:block;margin-bottom:4px;}
+.ref-toggle{width:100%;padding:12px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;font-weight:700;font-family:var(--font-d);cursor:pointer;color:var(--text2);margin-bottom:10px;transition:background .15s;}
+.ref-toggle:hover{background:var(--bg2);}
+.ref-box{background:var(--ok-bg);border:1.5px solid var(--ok-bd);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:14px;display:none;}
+.ref-box.show{display:block;}
+.ref-title{font-family:var(--font-d);font-size:12px;font-weight:800;color:var(--ok);margin-bottom:8px;}
+.ref-text{font-size:13px;color:var(--text);line-height:1.75;}
+
+/* SPEAKING */
+.speak-card{background:var(--bg2);border:1.5px solid var(--c-sk-bd);border-radius:var(--radius);padding:20px;margin-bottom:14px;box-shadow:var(--shadow);}
+.speak-badge{display:inline-block;background:var(--c-sk-bg);color:var(--c-sk);font-size:10px;font-weight:800;font-family:var(--font-d);padding:3px 10px;border-radius:20px;margin-bottom:10px;}
+.speak-prompt{font-size:15px;font-weight:700;line-height:1.55;margin-bottom:10px;}
+.speak-sub{font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.5;}
+.speak-play-btn{display:flex;align-items:center;gap:8px;background:var(--c-sk);color:white;border:none;border-radius:var(--radius-sm);padding:10px 18px;font-size:13px;font-weight:700;font-family:var(--font-d);cursor:pointer;margin-bottom:12px;transition:opacity .15s;}
+.speak-play-btn:hover{opacity:.85;}
+.speak-play-btn svg{width:14px;height:14px;fill:white;}
+
+/* NEXT BTN */
+.next-btn{width:100%;padding:14px;background:var(--c-km);color:white;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:var(--font-d);cursor:pointer;transition:opacity .15s,transform .12s;display:none;}
+.next-btn.show{display:block;}
+.next-btn:active{transform:scale(.98);}
+
+/* RESULT */
+.result-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);padding:28px 24px;box-shadow:var(--shadow);text-align:center;margin-bottom:20px;}
+.r-score-wrap{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:6px;}
+.r-score{font-family:var(--font-d);font-size:56px;font-weight:900;line-height:1;}
+.r-score.perfect{color:var(--ok);}
+.r-score.good{color:var(--c-xp);}
+.r-score.bad{color:var(--ng);}
+.r-total{font-family:var(--font-d);font-size:20px;font-weight:700;color:var(--text3);align-self:flex-end;padding-bottom:6px;}
+.r-label{font-size:14px;color:var(--text2);margin-bottom:18px;}
+.r-dots{display:flex;gap:5px;justify-content:center;margin-bottom:18px;flex-wrap:wrap;}
+.r-dot{width:12px;height:12px;border-radius:50%;}
+.r-dot.hit{background:var(--ok);}
+.r-dot.miss{background:var(--ng-bg);border:2px solid var(--ng-bd);}
+.r-dot.skip{background:#fef9ec;border:2px solid #fde68a;}
+.xp-earned{display:inline-block;background:#fef9ec;border:1.5px solid #fde68a;border-radius:24px;padding:8px 24px;font-family:var(--font-d);font-size:18px;font-weight:800;color:var(--c-xp);margin-bottom:8px;}
+.r-msg{font-size:13px;color:var(--text2);line-height:1.55;}
+.wrong-review{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px 24px;box-shadow:var(--shadow);margin-bottom:20px;}
+.wr-head{font-family:var(--font-d);font-size:14px;font-weight:800;margin-bottom:14px;color:var(--ng);}
+.wr-item{padding:10px 0;border-bottom:1px solid var(--border);}
+.wr-item:last-child{border-bottom:none;padding-bottom:0;}
+.wr-q{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.wr-ans{font-size:12px;color:var(--text2);}
+.wr-ans span{color:var(--ok);font-weight:700;}
+.result-btns{display:flex;gap:12px;}
+.rb-again{flex:1;padding:14px;background:white;border:2px solid var(--c-km);border-radius:var(--radius-sm);font-size:14px;font-weight:800;font-family:var(--font-d);cursor:pointer;color:var(--c-km);transition:background .15s;}
+.rb-again:hover{background:var(--c-km-bg);}
+.rb-home{flex:1;padding:14px;background:var(--c-km);color:white;border:2px solid var(--c-km);border-radius:var(--radius-sm);font-size:14px;font-weight:800;font-family:var(--font-d);cursor:pointer;}
+
+/* LEVEL UP */
+.lvup-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.lvup-overlay.show{display:flex;}
+.lvup-box{background:white;border-radius:24px;padding:40px 36px;text-align:center;max-width:320px;width:90%;box-shadow:0 24px 64px rgba(0,0,0,.18);animation:popBig .4s cubic-bezier(.4,0,.2,1);}
+@keyframes popBig{from{transform:scale(.7);opacity:0}60%{transform:scale(1.05)}to{transform:scale(1);opacity:1}}
+.lvup-lv{font-family:var(--font-d);font-size:48px;font-weight:900;color:var(--c-km);margin-bottom:8px;}
+.lvup-title{font-family:var(--font-d);font-size:22px;font-weight:900;margin-bottom:6px;}
+.lvup-rank{font-size:14px;color:var(--text2);margin-bottom:8px;}
+.lvup-unlock{font-size:13px;color:var(--c-km);font-weight:700;background:var(--c-km-bg);border-radius:var(--radius-sm);padding:8px 14px;margin-bottom:20px;min-height:36px;}
+.lvup-btn{width:100%;padding:13px;background:var(--c-km);color:white;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:var(--font-d);cursor:pointer;}
+
+/* COIN */
+@keyframes cf{0%{opacity:0;transform:translateY(0) scale(.4)}20%{opacity:1;transform:translateY(-12px) scale(1.15)}80%{opacity:1;transform:translateY(-60px)}100%{opacity:0;transform:translateY(-88px) scale(.4)}}
+.coin-el{position:fixed;pointer-events:none;z-index:999;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe066,#f9c846,#d4a017);border:1.5px solid #e5a800;animation:cf .95s ease-out forwards;}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(12px);background:var(--text);color:white;border-radius:24px;padding:10px 22px;font-size:13px;font-family:var(--font-d);font-weight:700;opacity:0;transition:all .28s;z-index:300;white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.fu{animation:fadeUp .38s ease both;}
+.d1{animation-delay:.04s}.d2{animation-delay:.1s}.d3{animation-delay:.16s}
+</style>
+</head>
+<body>
+<div id="cl" style="position:fixed;inset:0;pointer-events:none;z-index:998;"></div>
+<div class="toast" id="toast"></div>
+
+<div class="lvup-overlay" id="lvup">
+  <div class="lvup-box">
+    <div class="lvup-lv">Lv.<span id="lv-n">2</span></div>
+    <div class="lvup-title">等級提升！</div>
+    <div class="lvup-rank" id="lv-rank">見習學者</div>
+    <div class="lvup-unlock" id="lv-unlock"></div>
+    <button class="lvup-btn" onclick="document.getElementById('lvup').classList.remove('show')">繼續學習</button>
+  </div>
+</div>
+
+<div class="page">
+  <div class="topbar fu d1">
+    <a class="back-btn" href="dashboard.html">← 返回儀表板</a>
+    <div class="page-title">每日測驗</div>
+    <div class="xp-chip"><div class="xp-dot"></div><span class="xp-val" id="xpv">0</span></div>
+  </div>
+
+  <!-- ══ SCREEN 1: SELECT ══ -->
+  <div class="screen active" id="s-select">
+    <div class="sec-h fu d2">選擇科目</div>
+    <div class="subj-grid fu d2">
+
+      <div class="subj-card gr" onclick="showGeptSub()">
+        <div class="subj-icon">英檢</div>
+        <div class="subj-name">全民英檢 初級</div>
+        <div class="subj-sub">聽力、閱讀、寫作、口說四大項目</div>
+        <div class="subj-stats">
+          <div class="subj-stat">作答 <span id="ss-gr-q">0</span> 題</div>
+          <div class="subj-stat">正確率 <span id="ss-gr-a">0%</span></div>
+        </div>
+      </div>
+
+      <div class="subj-card jp" onclick="selectSubj('jp')">
+        <div class="subj-icon">日文</div>
+        <div class="subj-name">日文 N5</div>
+        <div class="subj-sub">單字、文法、讀解</div>
+        <div class="subj-stats">
+          <div class="subj-stat">作答 <span id="ss-jp-q">0</span> 題</div>
+          <div class="subj-stat">正確率 <span id="ss-jp-a">0%</span></div>
+        </div>
+      </div>
+
+      <div class="subj-card km" onclick="showKmSub()">
+        <div class="subj-icon">關務</div>
+        <div class="subj-name">關務三等特考</div>
+        <div class="subj-sub">國文、法學知識、英文、行政法、財政學、國際貿易實務</div>
+        <div class="subj-stats">
+          <div class="subj-stat">作答 <span id="ss-km-q">0</span> 題</div>
+          <div class="subj-stat">正確率 <span id="ss-km-a">0%</span></div>
+        </div>
+      </div>
+
+      <div class="subj-card sk" onclick="selectSubj('sk')">
+        <div class="subj-icon">素描</div>
+        <div class="subj-name">素描每日挑戰</div>
+        <div class="subj-sub">基礎練習題目打卡</div>
+        <div class="subj-stats">
+          <div class="subj-stat">打卡 <span id="ss-sk-q">0</span> 次</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GEPT SUBMENU -->
+    <div id="gept-sub" style="display:none;margin-top:24px;" class="fu d1">
+      <div class="sec-h">全民英檢初級 — 選擇項目</div>
+      <div class="gept-sub-list">
+        <div class="gept-sub-card" onclick="selectSubj('gr-listen')">
+          <div class="gept-sub-name">聽力測驗</div>
+          <div class="gept-sub-desc">看圖辨義、問答、簡短對話、短文聽解</div>
+          <span class="gept-tag listen">30題 · 約20分鐘</span>
+        </div>
+        <div class="gept-sub-card" onclick="selectSubj('gr-read')">
+          <div class="gept-sub-name">閱讀測驗</div>
+          <div class="gept-sub-desc">詞彙、段落填空、閱讀理解</div>
+          <span class="gept-tag read">30題 · 35分鐘</span>
+        </div>
+        <div class="gept-sub-card" onclick="selectSubj('gr-write')">
+          <div class="gept-sub-name">寫作測驗（加考）</div>
+          <div class="gept-sub-desc">單句寫作（句子改寫、合併、重組）、段落寫作</div>
+          <span class="gept-tag write">16題 · 40分鐘 · 通過標準70分</span>
+        </div>
+        <div class="gept-sub-card" onclick="selectSubj('gr-speak')">
+          <div class="gept-sub-name">口說測驗（加考）</div>
+          <div class="gept-sub-desc">複誦、朗讀句子與短文、回答問題</div>
+          <span class="gept-tag speak">18題 · 約10分鐘 · 通過標準80分</span>
+        </div>
+      </div>
+      <button class="back-btn" style="margin-top:14px;" onclick="hideGeptSub()">← 返回科目選擇</button>
+    </div>
+
+    <!-- KANMU SUBMENU -->
+    <div id="km-sub" style="display:none;margin-top:24px;" class="fu d1">
+      <div class="sec-h">關務三等特考 — 選擇科目</div>
+      <div class="km-sub-list">
+        <div class="km-sub-card" onclick="selectSubj('km-law')">
+          <div class="km-sub-name">法學知識</div>
+          <div class="km-sub-desc">中華民國憲法 50%、法學緒論 50%</div>
+          <span class="km-tag mc">選擇題</span>
+        </div>
+        <div class="km-sub-card" onclick="selectSubj('km-eng')">
+          <div class="km-sub-name">外國文（英文）</div>
+          <div class="km-sub-desc">閱讀理解、翻譯、貿易法規相關英文</div>
+          <span class="km-tag mc">選擇題</span>
+        </div>
+        <div class="km-sub-card" onclick="selectSubj('km-admin')">
+          <div class="km-sub-name">行政法</div>
+          <div class="km-sub-desc">行政程序、行政救濟、行政罰</div>
+          <span class="km-tag mc">選擇題</span><span class="km-tag essay">含申論題</span>
+        </div>
+        <div class="km-sub-card" onclick="selectSubj('km-finance')">
+          <div class="km-sub-name">財政學</div>
+          <div class="km-sub-desc">租稅理論、財政制度、預算</div>
+          <span class="km-tag mc">選擇題</span><span class="km-tag essay">含申論題</span>
+        </div>
+        <div class="km-sub-card" onclick="selectSubj('km-trade')">
+          <div class="km-sub-name">國際貿易實務</div>
+          <div class="km-sub-desc">貿易條件、信用狀、運輸保險</div>
+          <span class="km-tag mc">選擇題</span><span class="km-tag essay">含申論題</span>
+        </div>
+        <div class="km-sub-card" onclick="selectSubj('km-chinese')">
+          <div class="km-sub-name">國文</div>
+          <div class="km-sub-desc">測驗題 + 作文練習</div>
+          <span class="km-tag mc">選擇題</span><span class="km-tag essay">含申論題</span>
+        </div>
+      </div>
+      <button class="back-btn" style="margin-top:14px;" onclick="hideKmSub()">← 返回科目選擇</button>
+    </div>
+
+    <!-- COUNT CONFIG -->
+    <div id="cfg" style="display:none;margin-top:28px;" class="fu d1">
+      <div class="sec-h" id="cfg-label">選擇題數</div>
+      <div class="count-row">
+        <button class="count-btn active" onclick="setCnt(5,this)">5 題</button>
+        <button class="count-btn" onclick="setCnt(10,this)">10 題</button>
+        <button class="count-btn" onclick="setCnt(15,this)">15 題</button>
+        <button class="count-btn" onclick="setCnt(20,this)">20 題</button>
+      </div>
+      <button class="go-btn" onclick="startQuiz()">開始測驗</button>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN 2: QUIZ ══ -->
+  <div class="screen" id="s-quiz">
+    <div class="quiz-header fu d1">
+      <div class="quiz-meta">
+        <div class="q-tag" id="q-tag">英檢初級</div>
+        <div class="q-ctr" id="q-ctr">1 / 10</div>
+      </div>
+      <div class="prog-track"><div class="prog-fill" id="q-prog" style="width:0%"></div></div>
+    </div>
+    <div id="quiz-body"></div>
+  </div>
+
+  <!-- ══ SCREEN 3: RESULT ══ -->
+  <div class="screen" id="s-result">
+    <div class="result-card fu d1">
+      <div class="r-score-wrap">
+        <div class="r-score" id="r-score">8</div>
+        <div class="r-total" id="r-total">/ 10</div>
+      </div>
+      <div class="r-label" id="r-label">答對題數</div>
+      <div class="r-dots" id="r-dots"></div>
+      <div class="xp-earned" id="r-xp">+30 XP</div>
+      <div class="r-msg" id="r-msg"></div>
+    </div>
+    <div class="wrong-review" id="wrong-wrap" style="display:none;">
+      <div class="wr-head">錯題紀錄（下次將優先出現）</div>
+      <div id="wr-list"></div>
+    </div>
+    <div class="result-btns fu d2">
+      <button class="rb-again" onclick="goReselect()">換科目練習</button>
+      <button class="rb-home" onclick="goHome()">回儀表板</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+function defS(){return{xp:0,level:1,subjectStats:{},wrongBank:{},jpLevel:'N5'};}
+let S=(()=>{try{return{...defS(),...JSON.parse(localStorage.getItem('lq3'))};}catch(e){return defS();}})();
+const sv=()=>localStorage.setItem('lq3',JSON.stringify(S));
+
+const LEVELS=[
+  {lv:1,name:'初心者',xp:0,unlock:''},
+  {lv:2,name:'見習學者',xp:200,unlock:'解鎖日文 N4 題目（需正確率 90%）'},
+  {lv:3,name:'努力中的人',xp:500,unlock:'解鎖關務特考「財政學」'},
+  {lv:4,name:'知識探索者',xp:1000,unlock:'解鎖關務特考「國際貿易實務」'},
+  {lv:5,name:'備考戰士',xp:2000,unlock:'解鎖每月模擬考功能'},
+  {lv:6,name:'學習冒險家',xp:3500,unlock:'解鎖英檢說寫練習模式'},
+  {lv:7,name:'考試挑戰者',xp:5500,unlock:'解鎖行政法申論練習'},
+  {lv:8,name:'知識獵人',xp:8000,unlock:'解鎖弱點分析雷達圖'},
+  {lv:9,name:'精通學者',xp:12000,unlock:''},
+  {lv:10,name:'傳說備考士',xp:18000,unlock:'全科目模擬考（跨科混合）'},
+];
+function getLv(xp){let r=LEVELS[0];for(const l of LEVELS)if(xp>=l.xp)r=l;return r;}
+function addXp(n){
+  const before=getLv(S.xp); S.xp+=n; sv();
+  document.getElementById('xpv').textContent=S.xp.toLocaleString();
+  const after=getLv(S.xp);
+  if(after.lv>before.lv){
+    document.getElementById('lv-n').textContent=after.lv;
+    document.getElementById('lv-rank').textContent=after.name;
+    document.getElementById('lv-unlock').textContent=after.unlock?'新解鎖：'+after.unlock:'';
+    document.getElementById('lvup').classList.add('show');
+    burstCoins();
+  }
+}
+
+// ── WEB SPEECH ──
+const ABCD=['A','B','C','D'];
+let replayCount=0;
+function speak(text,onEnd){
+  if(!window.speechSynthesis){if(onEnd)onEnd();return;}
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang='en-US'; u.rate=0.9; u.pitch=1;
+  if(onEnd)u.onend=onEnd;
+  window.speechSynthesis.speak(u);
+}
+function speakJp(text){
+  if(!window.speechSynthesis)return;
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang='ja-JP'; u.rate=0.85;
+  window.speechSynthesis.speak(u);
+}
+
+// ── SHUFFLE ──
+function shuffled(arr){return[...arr].sort(()=>Math.random()-.5);}
+function randomiseOpts(q){
+  if(q.essay||q.speak)return q;
+  const correct=q.opts[q.ans];
+  const s=shuffled(q.opts);
+  return{...q,opts:s,ans:s.indexOf(correct)};
+}
+
+// ── QUESTION BANKS ──
+const QB={
+'gr-listen':[
+  {type:'看圖辨義',audio:'A woman is sitting at a desk and reviewing some documents in an office.',q:'根據描述，這位女士最可能在做什麼？',opts:['She is working in an office.','She is cooking in a kitchen.','She is shopping at a market.','She is exercising at a gym.'],ans:0,exp:'關鍵詞：desk（辦公桌）、documents（文件）、office（辦公室），對應選項 A。'},
+  {type:'看圖辨義',audio:'Two children are playing in a park. One is on the swing and the other is watching.',q:'根據描述，場景是？',opts:['Children playing in a park.','Students studying in a library.','People eating in a restaurant.','Workers in a factory.'],ans:0,exp:'關鍵詞：park（公園）、swing（鞦韆）、playing（玩耍），選 A。'},
+  {type:'問答',audio:'Excuse me, is this seat taken?',q:'聽到這句話，最適合的回應是？',opts:['No, please go ahead.','Yes, I like this movie.','The store opens at nine.','It was very delicious.'],ans:0,exp:'"Is this seat taken?" 詢問座位是否有人，自然回應 "No, please go ahead."（沒有，請坐）。'},
+  {type:'問答',audio:'How often do you exercise?',q:'對此問題最自然的回答是？',opts:['About three times a week.','It takes about 30 minutes.','I exercise at the park.','My favorite sport is swimming.'],ans:0,exp:'"How often" 詢問頻率，正確回應應包含頻率，如 "three times a week"。'},
+  {type:'問答',audio:'Can you help me carry these boxes?',q:'最自然的回應是？',opts:['Sure, no problem.','Yes, they are very heavy.','I bought them yesterday.','The boxes are in the room.'],ans:0,exp:'對方請求幫忙，答應幫忙是最自然的回應，選 A。'},
+  {type:'簡短對話',audio:'Woman: Did you finish the report? Man: Not yet. I need about two more hours.',q:'從對話得知，男士的報告狀況是？',opts:['He has not finished the report yet.','He finished the report this morning.','He does not need to write a report.','He will not write the report.'],ans:0,exp:'男士說 "Not yet"（還沒），代表報告尚未完成，選 A。'},
+  {type:'簡短對話',audio:'A: Should we take a taxi or the bus? B: The bus is cheaper, but the taxi is faster.',q:'根據對話，選擇計程車的理由是？',opts:['It is faster.','It is cheaper.','It is more comfortable.','It goes to more places.'],ans:0,exp:'B 說 "the taxi is faster"，所以計程車的優點是速度快，選 A。'},
+  {type:'短文聽解',audio:'A new coffee shop opened near the train station last Monday. It offers free Wi-Fi and stays open until midnight. The prices are also very reasonable.',q:'這家咖啡廳的特色是？',opts:['Free Wi-Fi and late hours.','The cheapest prices in town.','Free coffee every Monday.','It is inside the station.'],ans:0,exp:'短文提到 free Wi-Fi 和 open until midnight，選 A 最完整。'},
+  {type:'短文聽解',audio:'The city library will be closed this Saturday for renovation. It will reopen on Monday with extended hours from 8 AM to 10 PM.',q:'圖書館何時重新開放？',opts:['Monday.','Saturday.','Sunday.','Next week.'],ans:0,exp:'短文說 "reopen on Monday"，選 A。'},
+  {type:'問答',audio:'What time does the library close today?',q:'對此問題最適合的回應是？',opts:['It closes at eight tonight.','I went there yesterday.','The library has many books.','You can borrow five books.'],ans:0,exp:'"What time does it close?" 詢問關閉時間，正確回應應包含時間，選 A。'},
+],
+'gr-read':[
+  {type:'詞彙',q:'The manager asked all employees to ___ the meeting on time.',opts:['attend','spend','follow','finish'],ans:0,exp:'"attend a meeting" = 出席會議，是固定搭配。'},
+  {type:'詞彙',q:'She works very hard, ___ she always finishes her tasks before the deadline.',opts:['so','but','or','yet'],ans:0,exp:'前因後果，用 "so"（所以）連接。'},
+  {type:'詞彙',q:'The new restaurant is very popular ___ its delicious food and affordable prices.',opts:['because of','instead of','in spite of','as well as'],ans:0,exp:'"because of" 後接名詞片語表原因，選 A。'},
+  {type:'段落填空',q:'Many people today work from home. This allows them to ___ time on commuting and spend more time with their families.',opts:['save','waste','spend','lose'],ans:0,exp:'在家工作節省通勤時間，"save time" 最符合語意。'},
+  {type:'段落填空',q:'Technology has changed communication. In the past, people wrote letters. Today, most people ___ emails or instant messages instead.',opts:['send','write','post','carry'],ans:0,exp:'"send emails" 是標準說法，選 A。'},
+  {type:'閱讀理解',passage:'The annual Lantern Festival takes place on the fifteenth day of the first lunar month. Families gather to watch lanterns, eat sweet rice balls, and enjoy fireworks together.',q:'根據文章，元宵節人們吃什麼？',opts:['Sweet rice balls.','Moon cakes.','Dumplings.','Rice pudding.'],ans:0,exp:'文章明確提到 "eat sweet rice balls"（吃湯圓）。'},
+  {type:'詞彙',q:'Please ___ the lights before you leave the office.',opts:['turn off','turn on','turn up','turn down'],ans:0,exp:'"turn off the lights" = 關燈，離開前關燈，選 A。'},
+  {type:'詞彙',q:'The train was delayed ___ heavy rain.',opts:['due to','in order to','so as to','thanks to'],ans:0,exp:'"due to" + 名詞表示原因（因為），選 A。"thanks to" 通常帶正面含義。'},
+  {type:'閱讀理解',passage:'The city announced a new recycling program. Residents are asked to separate plastic, paper, and glass into different bins. The program starts next month.',q:'這個回收計畫要求居民做什麼？',opts:['Separate different types of recyclables.','Pay a fee for garbage collection.','Buy new recycling bins.','Reduce their overall waste.'],ans:0,exp:'文章說 "separate plastic, paper, and glass into different bins"，選 A。'},
+  {type:'詞彙',q:'The weather forecast ___ heavy rain tomorrow afternoon.',opts:['predicts','describes','reports','explains'],ans:0,exp:'"predicts"（預測）最常與天氣預報搭配，如 "the forecast predicts rain"。'},
+],
+'gr-write':[
+  {type:'單句寫作',essay:true,q:'句子改寫：將以下句子改為被動語態。\n原句：The teacher corrected the students\' homework.',points:'被動語態公式：主詞 + be 動詞 + 過去分詞\n正確答案：The students\' homework was corrected by the teacher.\n注意：時態維持過去式，be 動詞用 was（因主詞為單數）',ref:'The students\' homework was corrected by the teacher.\n\n說明：主動句的受詞（homework）變成被動句的主詞，動詞改為 was + corrected，原主詞（teacher）加 by 放在句尾。'},
+  {type:'單句寫作',essay:true,q:'句子合併：用 "although" 合併以下兩句。\n句1：It was raining heavily.\n句2：We decided to go hiking.',points:'Although 引導讓步子句，表示「雖然…但是…」\n合併方式：Although + 子句1, 子句2\n或：子句2 + although + 子句1',ref:'Although it was raining heavily, we decided to go hiking.\n（或）We decided to go hiking although it was raining heavily.\n\n說明：although 引導讓步狀語子句，兩種語序均可，注意 although 子句在前時要加逗號。'},
+  {type:'段落寫作',essay:true,q:'段落寫作：以「My Favorite Season」（我最喜歡的季節）為主題，寫一段約 50 字的英文段落。',points:'結構建議：\n1. 主題句：說明最喜歡的季節\n2. 理由1：天氣或活動\n3. 理由2：個人回憶或感受\n4. 結尾句：總結',ref:'My favorite season is autumn. The weather is cool and comfortable, which is perfect for outdoor activities like hiking. I also love the beautiful colors of the falling leaves. Every autumn, my family goes to the mountains to enjoy the scenery. This season always makes me feel peaceful and happy.'},
+  {type:'句子重組',essay:true,q:'句子重組：將以下單字重組成正確的英文句子。\n字詞：every / she / morning / exercise / likes / to',points:'分析詞性：\n- she（主詞）\n- likes to exercise（動詞片語）\n- every morning（時間副詞，通常放句首或句尾）',ref:'She likes to exercise every morning.\n（或）Every morning, she likes to exercise.\n\n說明：基本語序為 主詞 + 動詞 + 時間副詞。時間副詞也可置於句首加強語氣。'},
+],
+'gr-speak':[
+  {type:'複誦',speak:true,audio:'The weather forecast says it will rain tomorrow afternoon.',q:'請跟著朗讀以下句子（播放後複誦）：',ref:'重點：forecast（天氣預報）、rain tomorrow afternoon（明天下午下雨）\n注意發音：forecast /ˈfɔːrkæst/、afternoon /ˌæftərˈnuːn/'},
+  {type:'複誦',speak:true,audio:'She has been working at the company for more than ten years.',q:'請跟著朗讀以下句子（播放後複誦）：',ref:'重點：現在完成進行式（has been working）\n注意：more than ten years 表示超過十年'},
+  {type:'朗讀短文',speak:true,audio:'Good morning, everyone. Today I would like to talk about healthy eating habits. Eating a balanced diet is very important for our health. We should eat more fruits and vegetables every day.',q:'請朗讀以下短文：',ref:'發音重點：\n- balanced /ˈbælənst/\n- vegetables /ˈvedʒtəbəlz/\n- important /ɪmˈpɔːrtənt/'},
+  {type:'回答問題',speak:true,audio:'What do you usually do on weekends?',q:'請回答以下問題（用 1-2 句英文回答）：',ref:'參考回答：\n"On weekends, I usually go to the park with my family. Sometimes I also read books or watch movies at home."\n\n關鍵詞彙：usually（通常）、sometimes（有時候）、on weekends（在週末）'},
+  {type:'回答問題',speak:true,audio:'What is your favorite food and why?',q:'請回答以下問題（用 1-2 句英文回答）：',ref:'參考回答：\n"My favorite food is sushi because it is delicious and healthy. I especially love the fresh salmon."\n\n提示：記得用 because 說明理由，展現句子連接能力。'},
+],
+'jp':[
+  {type:'單字',q:'「食べる」的意思是？',opts:['吃','喝','睡覺','走路'],ans:0,exp:'食べる（たべる）= 吃，動詞二類。常用句：ご飯を食べます（吃飯）。'},
+  {type:'單字',q:'「大きい」的意思是？',opts:['大的','小的','長的','重的'],ans:0,exp:'大きい（おおきい）= 大的，い形容詞。反義詞：小さい（ちいさい）= 小的。'},
+  {type:'讀音',q:'「水」的讀音是？',opts:['みず','かわ','うみ','そら'],ans:0,exp:'水（みず）= 水。川（かわ）= 河、海（うみ）= 海、空（そら）= 天空。'},
+  {type:'文法',q:'「私は学校___行きます。」空格填入：',opts:['に','を','が','は'],ans:0,exp:'移動目的地用助詞「に」。例：学校に行く（去學校）。'},
+  {type:'單字',q:'「どこ」的意思是？',opts:['哪裡','什麼','誰','什麼時候'],ans:0,exp:'どこ = 哪裡，疑問代名詞。常用：どこに行きますか？'},
+  {type:'讀音',q:'「月曜日」的讀音是？',opts:['げつようび','かようび','すいようび','もくようび'],ans:0,exp:'月曜日（げつようび）= 星期一。月火水木金土日 = 一二三四五六日。'},
+  {type:'文法',q:'「これ___本です。」空格填入：',opts:['は','に','を','も'],ans:0,exp:'「は」是主題助詞，"これは本です" = 這是書。N5 最基本句型。'},
+  {type:'單字',q:'「新しい」的意思是？',opts:['新的','舊的','快的','慢的'],ans:0,exp:'新しい（あたらしい）= 新的。反義詞：古い（ふるい）= 舊的。'},
+  {type:'讀音',q:'「学校」的讀音是？',opts:['がっこう','かいしゃ','びょういん','えき'],ans:0,exp:'学校（がっこう）= 學校。会社（かいしゃ）= 公司。病院（びょういん）= 醫院。'},
+  {type:'文法',q:'「毎日、日本語___勉強します。」空格填入：',opts:['を','に','は','が'],ans:0,exp:'動作的對象用助詞「を」，日本語を勉強する = 學習日文。'},
+  {type:'單字',q:'「来る」的意思是？',opts:['來','去','回去','走路'],ans:0,exp:'来る（くる）= 來，不規則動詞。反義詞：行く（いく）= 去。'},
+  {type:'文法',q:'「今、___時ですか。」詢問現在幾點，___應填入：',opts:['何','どこ','だれ','いつ'],ans:0,exp:'「何時ですか」= 幾點？何（なん）用於數字、時間的詢問。'},
+],
+'km-law':[
+  {type:'憲法',q:'依中華民國憲法，行政院對何機關負責？',opts:['立法院','司法院','監察院','總統府'],ans:0,exp:'憲法第57條，行政院對立法院負責。'},
+  {type:'法學緒論',q:'習慣法的成立須具備哪兩個要件？',opts:['長期慣行＋法律確信','法院判決＋學者同意','政府公告＋人民接受','立法通過＋公布施行'],ans:0,exp:'習慣法：(1)長期慣行的客觀事實，(2)一般人確信其有法律拘束力。'},
+  {type:'憲法',q:'憲法第23條規定，限制人民自由的條件不包括？',opts:['政府財政需要','防止妨礙他人自由','避免緊急危難','增進公共利益'],ans:0,exp:'四要件：防止妨礙他人自由、避免緊急危難、維持社會秩序、增進公共利益。政府財政需要不在其中。'},
+  {type:'法學緒論',q:'「法律不溯及既往」原則的主要目的是？',opts:['保障人民對法律的信賴','提高行政效率','統一法律見解','加速司法審判'],ans:0,exp:'保障「法安定性」與「信賴保護原則」，不以新法不利評價舊行為。'},
+  {type:'憲法',q:'司法院大法官的主要職權不包括？',opts:['審理一般民刑事案件','解釋憲法','統一解釋法律','審理政黨違憲解散案'],ans:0,exp:'一般民刑事案件由普通法院審理，非大法官職權。'},
+  {type:'法學緒論',q:'下列何者屬於「公法」關係？',opts:['人民申請建築執照','買賣房屋契約','公司股東大會','消費者購買商品'],ans:0,exp:'申請建築執照涉及政府行使公權力，屬公法關係。其餘均為私法關係。'},
+],
+'km-eng':[
+  {type:'閱讀理解',q:'The Customs Act requires importers to submit a ___ within 15 days of the goods arriving at port.',opts:['customs declaration','commercial invoice','bill of lading','certificate of origin'],ans:0,exp:'"customs declaration" = 報關申報，進口商須在貨物到港後15天內提交。'},
+  {type:'詞彙',q:'A document issued by the exporter listing the goods and their value is called:',opts:['Commercial invoice','Bill of lading','Letter of credit','Packing list'],ans:0,exp:'商業發票（commercial invoice）由出口商開立，列明貨物名稱、數量及價格。'},
+  {type:'翻譯理解',q:'"Ad valorem duty" means a tariff based on:',opts:['The value of the goods','The weight of the goods','The quantity of goods','The origin of goods'],ans:0,exp:'"Ad valorem" = 按價值，從價稅依貨物完稅價格的百分比計算。'},
+  {type:'詞彙',q:'Which document gives the holder the right to claim goods from a shipping company?',opts:['Bill of lading','Letter of credit','Customs declaration','Certificate of origin'],ans:0,exp:'提單（Bill of Lading）是物權憑證，持有人有權向船公司提領貨物。'},
+  {type:'詞彙',q:'Goods not allowed to be imported are called ___ goods.',opts:['prohibited','restricted','declared','bonded'],ans:0,exp:'"prohibited goods" = 違禁品，完全不得進口。"restricted" = 管制品，需特別許可。'},
+  {type:'翻譯理解',q:'"The goods shall be delivered CIF Taipei." The seller is responsible for:',opts:['Cost, insurance and freight to Taipei','Cost and insurance only','Freight to Taipei only','All expenses until final delivery'],ans:0,exp:'CIF = Cost + Insurance + Freight，賣方負責至目的港的成本、保險及運費。'},
+],
+'km-admin':[
+  {type:'選擇題',q:'行政處分「撤銷」與「廢止」最主要的區別為何？',opts:['撤銷針對違法，廢止針對合法','撤銷針對合法，廢止針對違法','兩者均針對違法處分','均需當事人申請'],ans:0,exp:'撤銷（§117）：針對違法行政處分，溯及既往。廢止（§122）：針對合法處分，向後失效。'},
+  {type:'選擇題',q:'依行政程序法，對人民作成不利行政處分前，應給予當事人？',opts:['陳述意見的機會','律師協助的權利','法院審查的機會','公開聽證的程序'],ans:0,exp:'行政程序法§102，作成不利處分前應給予當事人「陳述意見」的機會。'},
+  {type:'申論題',essay:true,q:'請說明「行政罰法」中「一行為不二罰」原則的意涵，並舉例說明其在實務上的適用。',points:'1. 原則定義：同一違法行為不得重複受到行政罰處罰\n2. 法律依據：行政罰法§24\n3. 實例：同一超速行為，不得由兩個不同機關各自裁罰\n4. 例外：行為同時觸犯刑事法律及行政罰，刑事優先',ref:'一行為不二罰原則在於保障人民不受重複制裁，體現比例原則與法治精神。同一行為違反數個行政法規定時，依法定罰鍰額最高者裁處，不得重複裁罰。行政罰法§26規定，行為同時觸犯刑事法律者，依刑事法律處罰；但刑事不起訴或無罪確定時，仍得裁處行政罰。'},
+  {type:'選擇題',q:'行政訴訟中，「撤銷訴訟」的目的是？',opts:['請求法院撤銷違法行政處分','請求法院命行政機關作成處分','確認行政處分是否合法','請求行政機關賠償損害'],ans:0,exp:'撤銷訴訟（行政訴訟法§4）：人民因違法行政處分損害其權利，請求撤銷該處分。'},
+],
+'km-finance':[
+  {type:'選擇題',q:'「公共財」的兩大核心特性為何？',opts:['非排他性與非敵對性','排他性與敵對性','非排他性與敵對性','排他性與非敵對性'],ans:0,exp:'純公共財：(1)非排他性—無法排除未付費者使用，(2)非敵對性—多人消費不影響品質。'},
+  {type:'選擇題',q:'下列何者最符合「負外部性」的例子？',opts:['工廠排放廢氣造成空氣污染','政府建設公園供民眾使用','企業研發新技術嘉惠產業','農場種植花卉美化環境'],ans:0,exp:'負外部性：個人行為使第三者受損卻未補償，工廠廢氣是標準例子。'},
+  {type:'申論題',essay:true,q:'請說明「累進稅率」制度的意義及其達成所得重分配的機制。',points:'1. 累進稅定義：所得越高，適用稅率越高\n2. 重分配機制：高所得者繳納較高比例稅款，政府將稅收用於社會福利\n3. 理論依據：量能課稅原則、邊際效用遞減\n4. 實例：我國綜合所得稅採五級累進稅率（5%～40%）',ref:'累進稅體現「量能課稅」原則。所得越高，稅率越高，使政府可透過再分配機制縮小貧富差距。我國現行綜合所得稅共分五級：5%、12%、20%、30%、40%。累進稅雖有公平性，但也可能影響工作誘因，需在公平與效率間取得平衡。'},
+  {type:'選擇題',q:'「李嘉圖等值定理」認為政府舉債與課稅對民間消費的影響？',opts:['相同，理性人民會為未來稅負儲蓄','不同，舉債刺激消費但課稅壓抑消費','舉債增加消費，課稅無影響','均對消費無任何影響'],ans:0,exp:'李嘉圖等值：理性民眾預期今日舉債終將以未來課稅償還，因此增加儲蓄，當期消費不變。'},
+],
+'km-trade':[
+  {type:'選擇題',q:'國際貿易術語「FOB」，賣方義務終止於？',opts:['貨物裝上買方指定船舶時','貨物到達目的港時','貨物清關完成時','貨物交給運送人時'],ans:0,exp:'FOB：賣方負責將貨物裝上船，費用與風險在「貨物越過船舷」時移轉給買方。'},
+  {type:'選擇題',q:'信用狀（L/C）交易中，「通知銀行」的主要功能是？',opts:['通知受益人信用狀已開立','代替開狀銀行付款','審核出口商提示的單據','為進口商提供融資'],ans:0,exp:'通知銀行：受開狀銀行委託，將信用狀通知出口商（受益人），本身不承擔付款責任。'},
+  {type:'申論題',essay:true,q:'請說明提單（Bill of Lading）的三大功能，並說明其在國際貿易中的重要性。',points:'1. 運送契約憑證：證明運送人與託運人間的運送契約關係\n2. 貨物收據：證明運送人已收到貨物並裝船\n3. 物權憑證：持有人有權提領貨物，可轉讓流通\n4. 重要性：為信用狀交易的核心單據，銀行據以付款',ref:'提單（B/L）同時具備三種功能。作為物權憑證，提單持有人可向船公司提領貨物，銀行在信用狀交易中控制提單即控制貨物所有權，大幅降低貿易風險。在信用狀交易中，出口商憑提單向銀行押匯，是最重要的單據之一。'},
+  {type:'選擇題',q:'「商業發票」（Commercial Invoice）的主要用途不包括？',opts:['作為貨物所有權的轉讓憑證','作為報關的主要文件','作為買賣雙方的帳務依據','作為計算關稅的參考基礎'],ans:0,exp:'貨物所有權轉讓憑證是提單（B/L）的功能，非商業發票。'},
+],
+'km-chinese':[
+  {type:'測驗',q:'下列何者為「形聲字」？',opts:['江','日','山','木'],ans:0,exp:'江（氵+工）：氵為形旁，工為聲旁，是形聲字。日、山、木均為象形字。'},
+  {type:'測驗',q:'「爾虞我詐」形容的是？',opts:['互相欺騙，勾心鬥角','奮發向上，積極進取','同甘共苦，相互扶持','各自為政，互不往來'],ans:0,exp:'爾虞我詐：你欺騙我，我欺騙你，出自《左傳》。'},
+  {type:'申論題',essay:true,q:'以「學習的意義」為題，寫一篇不少於400字的文章。',points:'【評分重點】\n1. 破題：清楚界定「學習」的意涵\n2. 論述：提出2～3個具體論點\n3. 舉例：引用名人事蹟、個人經驗佐證\n4. 結尾：呼應主題，提出個人態度\n5. 注意：用語精確、段落分明',ref:'【參考架構】\n開頭：以名言切入，如「學而不思則罔，思而不學則殆」\n段一：學習是獲取知識的途徑，使人具備面對世界的能力\n段二：學習需要方法與堅持，淺嘗輒止無法真正習得\n段三：學習的過程本身即是一種喜悅\n結尾：學習是一生的事，保持好奇與謙遜才能持續成長'},
+  {type:'測驗',q:'「洛陽紙貴」典故源自誰的作品？',opts:['左思','王羲之','陶淵明','杜甫'],ans:0,exp:'西晉左思《三都賦》成名後，眾人爭相傳抄，致洛陽紙張短缺漲價。'},
+  {type:'測驗',q:'下列句子，何者沒有語病？',opts:['我們應提升生活品質，而非一味追求物質享受','他的意見雖然正確，但說話方式讓人反感，所以大家不支持','這個問題大家都知道應該如何解決它的方法','由於天氣惡劣的原因，所以比賽被迫延期'],ans:0,exp:'A語意通順。B前後矛盾。C「解決」與「方法」重複。D「由於…原因」與「所以」重複。'},
+],
+'sk':[
+  {type:'觀察練習',q:'今日挑戰：畫一個正方體。光源來自左上方，在右側面和底面畫出較深的陰影。',opts:['完成打卡'],ans:0,exp:'陰影面用較密的斜線或加重力道，亮面留白。初學者不必追求完美，觀察光影方向才是核心。'},
+  {type:'觀察練習',q:'今日挑戰：練習直線控制。畫 10 條平行且等距的水平線，不用尺。',opts:['完成打卡'],ans:0,exp:'手腕放鬆，從肩膀發力，視線看終點而非筆尖。每天 5 分鐘，一個月後線條控制力明顯提升。'},
+  {type:'觀察練習',q:'今日挑戰：畫球體輪廓。用輕柔曲線畫一個圓形，不用橡皮擦，接受不完美。',opts:['完成打卡'],ans:0,exp:'建議多畫幾個，感受手腕的弧度。圓形很難一筆到位，過程本身就是進步。'},
+  {type:'觀察練習',q:'今日挑戰：描繪負空間。把手放在紙上，畫手指之間空隙的形狀，而非手的輪廓。',opts:['完成打卡'],ans:0,exp:'負空間練習能訓練觀察力，讓你從「畫符號」轉變為「畫所見」，是素描進步的關鍵。'},
+  {type:'觀察練習',q:'今日挑戰：畫圓柱體。上方畫橢圓，兩側畫垂直線，底部畫半個橢圓。',opts:['完成打卡'],ans:0,exp:'橢圓越接近視線水平就越扁。圓柱體是許多物體的基礎形狀，如杯子、瓶子。'},
+],
+};
+
+// ── QUIZ STATE ──
+const SUBJ_LABELS={'gr-listen':'英檢初級 聽力','gr-read':'英檢初級 閱讀','gr-write':'英檢初級 寫作','gr-speak':'英檢初級 口說','jp':'日文 N5','sk':'素描挑戰','km-law':'法學知識','km-eng':'外國文（英文）','km-admin':'行政法','km-finance':'財政學','km-trade':'國際貿易實務','km-chinese':'國文'};
+const SUBJ_COLOR={'gr-listen':'var(--c-gr)','gr-read':'var(--c-gr)','gr-write':'var(--c-gr)','gr-speak':'var(--c-gr)','jp':'var(--c-jp)','sk':'var(--c-sk)','km-law':'var(--c-km)','km-eng':'var(--c-km)','km-admin':'var(--c-km)','km-finance':'var(--c-km)','km-trade':'var(--c-km)','km-chinese':'var(--c-km)'};
+const SUBJ_TAGBG={'gr-listen':'background:var(--c-gr-bg);color:var(--c-gr)','gr-read':'background:var(--c-gr-bg);color:var(--c-gr)','gr-write':'background:var(--c-gr-bg);color:var(--c-gr)','gr-speak':'background:var(--c-gr-bg);color:var(--c-gr)','jp':'background:var(--c-jp-bg);color:var(--c-jp)','sk':'background:var(--c-sk-bg);color:var(--c-sk)','km-law':'background:var(--c-km-bg);color:var(--c-km)','km-eng':'background:var(--c-km-bg);color:var(--c-km)','km-admin':'background:var(--c-km-bg);color:var(--c-km)','km-finance':'background:var(--c-km-bg);color:var(--c-km)','km-trade':'background:var(--c-km-bg);color:var(--c-km)','km-chinese':'background:var(--c-km-bg);color:var(--c-km)'};
+const BASE_XP={'gr-listen':25,'gr-read':25,'gr-write':30,'gr-speak':25,'jp':25,'sk':20,'km-law':35,'km-eng':30,'km-admin':35,'km-finance':35,'km-trade':35,'km-chinese':30};
+
+let curSubj='',curQs=[],curIdx=0,curCnt=5,answers=[],wrongItems=[];
+
+function closeAllSub(){
+  document.getElementById('gept-sub').style.display='none';
+  document.getElementById('km-sub').style.display='none';
+}
+function selectSubj(s){
+  curSubj=s;
+  closeAllSub();
+  document.getElementById('cfg-label').textContent='選擇題數 — '+SUBJ_LABELS[s];
+  document.getElementById('cfg').style.display='block';
+  document.getElementById('cfg').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function showGeptSub(){closeAllSub();document.getElementById('cfg').style.display='none';document.getElementById('gept-sub').style.display='block';document.getElementById('gept-sub').scrollIntoView({behavior:'smooth'});}
+function hideGeptSub(){document.getElementById('gept-sub').style.display='none';document.getElementById('cfg').style.display='none';}
+function showKmSub(){closeAllSub();document.getElementById('cfg').style.display='none';document.getElementById('km-sub').style.display='block';document.getElementById('km-sub').scrollIntoView({behavior:'smooth'});}
+function hideKmSub(){document.getElementById('km-sub').style.display='none';document.getElementById('cfg').style.display='none';}
+function setCnt(n,btn){curCnt=n;document.querySelectorAll('.count-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+
+function startQuiz(){
+  const bank=(QB[curSubj]||[]).map(q=>q.essay||q.speak?q:randomiseOpts(q));
+  if(!bank.length){showToast('此科目題庫建置中，敬請期待');return;}
+  const wb=(S.wrongBank&&S.wrongBank[curSubj])||[];
+  const wrongQs=bank.filter((_,i)=>wb.includes(i));
+  const rest=shuffled(bank.filter((_,i)=>!wb.includes(i)));
+  curQs=shuffled([...wrongQs,...rest]).slice(0,Math.min(curCnt,bank.length));
+  curIdx=0;answers=[];wrongItems=[];
+  showScr('s-quiz');renderQ();
+}
+
+function renderQ(){
+  const q=curQs[curIdx],total=curQs.length;
+  document.getElementById('q-prog').style.width=((curIdx/total)*100)+'%';
+  document.getElementById('q-prog').style.background=SUBJ_COLOR[curSubj]||'var(--c-km)';
+  document.getElementById('q-ctr').textContent=(curIdx+1)+' / '+total;
+  document.getElementById('q-tag').style.cssText=SUBJ_TAGBG[curSubj]||'';
+  document.getElementById('q-tag').textContent=q.type;
+  const isLast=curIdx+1===total;
+
+  if(q.speak){
+    // SPEAKING
+    document.getElementById('quiz-body').innerHTML=`
+      <div class="speak-card fu d1">
+        <div class="speak-badge">口說練習</div>
+        <div class="speak-prompt">${q.q}</div>
+        <div class="q-passage" style="margin-bottom:12px;font-weight:600;">${q.audio}</div>
+        <button class="speak-play-btn" onclick="speak('${q.audio.replace(/'/g,"\\'")}',null)">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          播放題目
+        </button>
+        <div class="speak-sub">播放後請跟著朗讀或口頭回答，完成後查看參考。</div>
+      </div>
+      <button class="ref-toggle" onclick="toggleRef()">查看參考答案 / 發音重點</button>
+      <div class="ref-box" id="ref-box">
+        <div class="ref-title">參考內容</div>
+        <div class="ref-text">${(q.ref||'').replace(/\n/g,'<br>')}</div>
+      </div>
+      <button class="next-btn show" id="nxt" onclick="nextQ('speak')">${isLast?'查看結果':'下一題'}</button>`;
+
+  } else if(q.essay){
+    // ESSAY
+    const badge=curSubj.startsWith('gr')?'write':'';
+    document.getElementById('quiz-body').innerHTML=`
+      <div class="essay-card fu d1">
+        <div class="essay-badge ${badge}">申論 / 寫作題</div>
+        <div class="essay-q">${q.q.replace(/\n/g,'<br>')}</div>
+        <div class="essay-points"><strong>答題重點</strong>${(q.points||'').replace(/\n/g,'<br>')}</div>
+      </div>
+      <button class="ref-toggle" onclick="toggleRef()">查看參考答案</button>
+      <div class="ref-box" id="ref-box">
+        <div class="ref-title">參考答案</div>
+        <div class="ref-text">${(q.ref||'').replace(/\n/g,'<br>')}</div>
+      </div>
+      <button class="next-btn show" id="nxt" onclick="nextQ('essay')">${isLast?'查看結果':'下一題'}</button>`;
+
+  } else {
+    // MC
+    const hasAudio=!!q.audio;
+    let html='';
+    if(hasAudio){
+      html+=`<div class="audio-box fu d1">
+        <button class="play-btn" id="play-btn" onclick="doPlay()">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <div class="audio-info">
+          <div class="audio-label">聽力題目</div>
+          <div class="audio-text" id="audio-txt">${q.audio}</div>
+          <div class="audio-hint">點播放按鈕收聽，可重複播放</div>
+        </div>
+      </div>`;
+    }
+    html+=`<div class="q-card fu d1">
+      <div class="q-type">${q.type}</div>
+      <div class="q-text">${q.q}</div>
+      ${q.sub?`<div class="q-sub">${q.sub}</div>`:''}
+      ${q.passage?`<div class="q-passage">${q.passage}</div>`:''}
+    </div>
+    <div class="options" id="opts"></div>
+    <div class="exbox" id="exbox"><div class="ex-result" id="ex-r"></div><div class="ex-text" id="ex-t"></div></div>
+    <button class="next-btn" id="nxt" onclick="nextQ('mc')">${isLast?'查看結果':'下一題'}</button>`;
+
+    document.getElementById('quiz-body').innerHTML=html;
+    const opts=document.getElementById('opts');
+    q.opts.forEach((o,i)=>{
+      const b=document.createElement('button');
+      b.className='opt';
+      b.innerHTML=`<span class="opt-label">${ABCD[i]}</span><span class="opt-text">${o}</span>`;
+      b.onclick=()=>pick(i,q,opts);
+      opts.appendChild(b);
+    });
+    if(hasAudio){
+      replayCount=0;
+      setTimeout(()=>doPlay(),400);
+    }
+  }
+}
+
+let curAudioText='';
+function doPlay(){
+  const t=document.getElementById('audio-txt');
+  if(t)curAudioText=t.textContent;
+  speak(curAudioText,null);
+}
+
+function toggleRef(){
+  const r=document.getElementById('ref-box');
+  r.classList.toggle('show');
+  document.querySelector('.ref-toggle').textContent=r.classList.contains('show')?'收起參考答案':'查看參考答案';
+}
+
+function pick(i,q,optsEl){
+  const btns=optsEl.querySelectorAll('.opt');
+  btns.forEach(b=>b.disabled=true);
+  const hit=i===q.ans;
+  btns[i].classList.add(hit?'correct':'wrong');
+  if(!hit)btns[q.ans].classList.add('reveal');
+  const eb=document.getElementById('exbox');
+  eb.className='exbox show '+(hit?'correct':'wrong');
+  document.getElementById('ex-r').textContent=hit?'正確！':'答錯了';
+  document.getElementById('ex-t').textContent=q.exp;
+  document.getElementById('nxt').classList.add('show');
+  answers.push(hit);
+  if(hit)spawnAt(btns[i]);
+  else{
+    wrongItems.push({q:q.q,correct:ABCD[q.ans]+'. '+q.opts[q.ans]});
+    if(!S.wrongBank)S.wrongBank={};
+    if(!S.wrongBank[curSubj])S.wrongBank[curSubj]=[];
+    const orig=(QB[curSubj]||[]).findIndex(x=>x.q===q.q);
+    if(orig>=0&&!S.wrongBank[curSubj].includes(orig))S.wrongBank[curSubj].push(orig);
+  }
+  sv();
+}
+
+function nextQ(type){
+  if(type==='essay'||type==='speak')answers.push(type);
+  curIdx++;
+  window.speechSynthesis&&window.speechSynthesis.cancel();
+  if(curIdx>=curQs.length)showResult();
+  else renderQ();
+}
+
+function showResult(){
+  const mcA=answers.filter(a=>a===true||a===false);
+  const total=mcA.length,correct=mcA.filter(Boolean).length;
+  const essayCount=answers.filter(a=>a==='essay').length;
+  const speakCount=answers.filter(a=>a==='speak').length;
+  const xp=Math.round((total>0?(correct/total):1)*(BASE_XP[curSubj]||30))+essayCount*10+speakCount*8;
+  const sk=curSubj.startsWith('km')?'km':curSubj.startsWith('gr')?'gr':curSubj;
+  if(!S.subjectStats)S.subjectStats={};
+  if(!S.subjectStats[sk])S.subjectStats[sk]={q:0,c:0};
+  S.subjectStats[sk].q+=total;S.subjectStats[sk].c+=correct;
+  addXp(xp);sv();
+  const pct=total>0?Math.round(correct/total*100):100;
+  const se=document.getElementById('r-score');
+  se.textContent=total>0?correct:(essayCount+speakCount>0?'完成':'—');
+  se.className='result-score '+(pct===100?'perfect':pct>=70?'good':'bad');
+  document.getElementById('r-total').textContent=total>0?'/ '+total:'';
+  document.getElementById('r-label').textContent=total>0?'答對題數':(essayCount?'寫作練習完成':speakCount?'口說練習完成':'完成');
+  document.getElementById('r-dots').innerHTML=answers.map(a=>a==='essay'?'<div class="r-dot skip"></div>':a==='speak'?'<div class="r-dot skip"></div>':`<div class="r-dot ${a?'hit':'miss'}"></div>`).join('');
+  document.getElementById('r-xp').textContent=`+${xp} XP`;
+  const msgs={100:'完美！全部答對，今天非常紮實。',90:'非常好！幾乎全對，繼續保持。',70:'不錯！還有幾題可以加強。',0:'沒關係，錯題已記錄，下次強化練習。'};
+  let msg=msgs[pct===100?100:pct>=90?90:pct>=70?70:0];
+  if(essayCount)msg+=` 完成 ${essayCount} 題寫作。`;
+  if(speakCount)msg+=` 完成 ${speakCount} 題口說。`;
+  document.getElementById('r-msg').textContent=msg;
+  const wr=document.getElementById('wrong-wrap');
+  if(wrongItems.length){wr.style.display='block';document.getElementById('wr-list').innerHTML=wrongItems.map(w=>`<div class="wr-item"><div class="wr-q">${w.q}</div><div class="wr-ans">正確答案：<span>${w.correct}</span></div></div>`).join('');}
+  else wr.style.display='none';
+  showScr('s-result');burstCoins();
+}
+
+function goReselect(){showScr('s-select');closeAllSub();document.getElementById('cfg').style.display='none';}
+function goHome(){window.location.href='dashboard.html';}
+function showScr(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'});}
+
+// COINS
+function spawnAt(el){const r=el.getBoundingClientRect();for(let i=0;i<5;i++)setTimeout(()=>coin(r.left+r.width*Math.random(),r.top+r.height/2),i*45);}
+function burstCoins(){for(let i=0;i<14;i++)setTimeout(()=>coin(Math.random()*window.innerWidth,window.innerHeight*.4+Math.random()*80),i*55);}
+function coin(x,y){const c=document.createElement('div');c.className='coin-el';c.style.left=(x+(Math.random()-.5)*22)+'px';c.style.top=y+'px';document.getElementById('cl').appendChild(c);setTimeout(()=>c.remove(),1000);}
+
+let tt;
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2400);}
+
+// INIT
+document.getElementById('xpv').textContent=S.xp.toLocaleString();
+['gr','jp','sk'].forEach(k=>{
+  const st=(S.subjectStats&&S.subjectStats[k])||{q:0,c:0};
+  const eq=document.getElementById('ss-'+k+'-q'),ea=document.getElementById('ss-'+k+'-a');
+  if(eq)eq.textContent=st.q;
+  if(ea)ea.textContent=st.q>0?Math.round(st.c/st.q*100)+'%':'0%';
+});
+const kmSt=(S.subjectStats&&S.subjectStats['km'])||{q:0,c:0};
+const kq=document.getElementById('ss-km-q'),ka=document.getElementById('ss-km-a');
+if(kq)kq.textContent=kmSt.q;
+if(ka)ka.textContent=kmSt.q>0?Math.round(kmSt.c/kmSt.q*100)+'%':'0%';
+</script>
+</body>
+</html>

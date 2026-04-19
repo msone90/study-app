@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>歷史紀錄</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:#f7f6f2; --bg2:#ffffff; --bg3:#eeece6;
+  --text:#1e1c18; --text2:#6b6860; --text3:#a8a59e;
+  --border:rgba(0,0,0,0.08); --border2:rgba(0,0,0,0.14);
+  --radius:16px; --radius-sm:10px;
+  --shadow:0 2px 10px rgba(0,0,0,0.06);
+  --c-gr:#e05252; --c-gr-bg:#fdf2f2; --c-gr-bd:#f5c6c6;
+  --c-jp:#2a9d8f; --c-jp-bg:#edf7f6; --c-jp-bd:#b2deda;
+  --c-km:#5a4fcf; --c-km-bg:#f2f1fd; --c-km-bd:#cac7f5;
+  --c-sk:#3a9e5f; --c-sk-bg:#edf7f2; --c-sk-bd:#b2ddc5;
+  --c-xp:#d4a017;
+  --ok:#16a34a; --ng:#dc2626; --warn:#d97706;
+  --font-d:'Nunito','Noto Sans TC',sans-serif;
+  --font-b:'Noto Sans TC',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{background:var(--bg);}
+body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height:100vh;}
+.page{max-width:900px;margin:0 auto;padding:32px 28px 80px;}
+@media(max-width:600px){.page{padding:20px 16px 64px;}}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
+.back-btn{display:flex;align-items:center;gap:6px;background:var(--bg2);border:1.5px solid var(--border2);border-radius:24px;padding:8px 16px;font-size:13px;font-weight:700;font-family:var(--font-d);color:var(--text2);cursor:pointer;text-decoration:none;transition:box-shadow .2s;}
+.back-btn:hover{box-shadow:var(--shadow);}
+.page-title{font-family:var(--font-d);font-size:20px;font-weight:900;}
+.xp-chip{display:flex;align-items:center;gap:6px;background:var(--bg2);border:1.5px solid var(--border2);border-radius:24px;padding:7px 14px;}
+.xp-dot{width:14px;height:14px;border-radius:50%;background:var(--c-xp);}
+.xp-val{font-family:var(--font-d);font-size:14px;font-weight:800;color:var(--c-xp);}
+
+/* TIME RANGE */
+.range-row{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;}
+.range-btn{padding:7px 18px;border-radius:24px;border:1.5px solid var(--border2);background:var(--bg2);font-size:12px;font-weight:700;font-family:var(--font-d);color:var(--text2);cursor:pointer;transition:all .15s;}
+.range-btn.active{background:var(--c-km);border-color:var(--c-km);color:white;}
+
+/* SUMMARY */
+.summary-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px;}
+@media(max-width:400px){.summary-row{grid-template-columns:1fr 1fr;}}
+.stat-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:14px 12px;text-align:center;box-shadow:var(--shadow);}
+.stat-val{font-family:var(--font-d);font-size:24px;font-weight:900;}
+.stat-val.purple{color:var(--c-km);}
+.stat-val.gold{color:var(--c-xp);}
+.stat-val.green{color:var(--ok);}
+.stat-val.warn{color:var(--warn);}
+.stat-val.red{color:var(--ng);}
+.stat-lbl{font-size:10px;color:var(--text3);margin-top:3px;font-family:var(--font-d);}
+
+/* SECTION HEAD */
+.sec-h{font-family:var(--font-d);font-size:11px;font-weight:800;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;}
+
+/* CHART CARDS */
+.chart-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);padding:18px 16px;box-shadow:var(--shadow);margin-bottom:20px;}
+.chart-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+.chart-title{font-family:var(--font-d);font-size:13px;font-weight:800;color:var(--text);}
+.chart-wrap{position:relative;height:200px;}
+
+/* SUBJECT SELECTOR */
+.subj-selector{display:flex;gap:6px;flex-wrap:wrap;}
+.subj-btn{padding:5px 12px;border-radius:20px;border:1.5px solid var(--border2);background:var(--bg);font-size:11px;font-weight:700;font-family:var(--font-d);color:var(--text2);cursor:pointer;transition:all .15s;}
+.subj-btn:hover{background:var(--bg3);}
+.subj-btn.active.gr{background:var(--c-gr-bg);border-color:var(--c-gr-bd);color:var(--c-gr);}
+.subj-btn.active.jp{background:var(--c-jp-bg);border-color:var(--c-jp-bd);color:var(--c-jp);}
+.subj-btn.active.km{background:var(--c-km-bg);border-color:var(--c-km-bd);color:var(--c-km);}
+.no-data-msg{display:flex;align-items:center;justify-content:center;height:200px;font-size:13px;color:var(--text3);}
+
+/* SKETCH CALENDAR */
+.cal-wrap{padding:4px 0;}
+.cal-months{display:flex;gap:2px;flex-wrap:wrap;}
+.cal-month{margin-bottom:10px;}
+.cal-month-label{font-size:11px;font-weight:700;color:var(--text3);font-family:var(--font-d);margin-bottom:5px;}
+.cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-day{width:100%;aspect-ratio:1;border-radius:3px;background:var(--bg3);transition:background .2s;}
+.cal-day.done{background:var(--c-sk);}
+.cal-day.empty{background:transparent;}
+.cal-legend{display:flex;align-items:center;gap:8px;margin-top:10px;}
+.cal-legend-box{width:12px;height:12px;border-radius:2px;}
+.cal-legend-label{font-size:11px;color:var(--text3);font-family:var(--font-d);}
+.cal-stats{font-size:12px;color:var(--text2);margin-top:8px;}
+.cal-stats strong{color:var(--c-sk);font-weight:700;}
+
+/* XP CHART row */
+.xp-chart-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);padding:18px 16px;box-shadow:var(--shadow);margin-bottom:24px;}
+
+/* HISTORY LIST */
+.hist-list{display:flex;flex-direction:column;gap:8px;}
+.hist-item{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:13px 16px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);}
+.hist-bar{width:4px;height:34px;border-radius:4px;flex-shrink:0;}
+.hist-body{flex:1;}
+.hist-subj{font-size:13px;font-weight:700;}
+.hist-date{font-size:11px;color:var(--text3);margin-top:2px;font-family:var(--font-d);}
+.hist-right{text-align:right;flex-shrink:0;}
+.hist-acc{font-family:var(--font-d);font-size:16px;font-weight:900;}
+.hist-acc.good{color:var(--ok);}
+.hist-acc.warn{color:var(--warn);}
+.hist-acc.bad{color:var(--ng);}
+.hist-acc.sk{color:var(--c-sk);}
+.hist-acc.essay{color:var(--c-xp);}
+.hist-xp{font-size:11px;color:var(--text3);font-family:var(--font-d);margin-top:2px;}
+.group-head{font-family:var(--font-d);font-size:11px;font-weight:800;color:var(--text3);padding:10px 0 6px;border-bottom:1px solid var(--border);margin-bottom:4px;}
+
+/* EMPTY */
+.empty-box{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);padding:48px 24px;text-align:center;box-shadow:var(--shadow);}
+.empty-title{font-family:var(--font-d);font-size:17px;font-weight:800;margin-bottom:8px;}
+.empty-sub{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:20px;}
+.go-btn{display:inline-block;padding:12px 28px;background:var(--c-km);color:white;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:var(--font-d);cursor:pointer;text-decoration:none;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.fu{animation:fadeUp .38s ease both;}
+.d1{animation-delay:.04s}.d2{animation-delay:.1s}.d3{animation-delay:.16s}.d4{animation-delay:.22s}.d5{animation-delay:.28s}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="topbar fu d1">
+    <a class="back-btn" href="dashboard.html">← 返回儀表板</a>
+    <div class="page-title">歷史紀錄</div>
+    <div class="xp-chip"><div class="xp-dot"></div><span class="xp-val" id="xpv">0</span></div>
+  </div>
+
+  <div class="range-row fu d2">
+    <button class="range-btn" onclick="setRange(7,this)">7 天</button>
+    <button class="range-btn active" onclick="setRange(30,this)">30 天</button>
+    <button class="range-btn" onclick="setRange(90,this)">3 個月</button>
+    <button class="range-btn" onclick="setRange(0,this)">全部</button>
+  </div>
+
+  <div id="main"></div>
+</div>
+
+<script>
+// ── STATE ──
+function defS(){return{xp:0,history:[]};}
+let S=(()=>{try{return{...defS(),...JSON.parse(localStorage.getItem('lq3'))};}catch(e){return defS();}})();
+
+let curRange=30, curSubj='gr-listen', accChart=null, xpChart=null;
+
+// ── SUBJECT DEFINITIONS ──
+const SUBJ_DEFS=[
+  {key:'gr-listen', label:'英檢 聽力', cls:'gr', color:'#e05252'},
+  {key:'gr-read',   label:'英檢 閱讀', cls:'gr', color:'#e05252'},
+  {key:'gr-write',  label:'英檢 寫作', cls:'gr', color:'#e05252'},
+  {key:'jp',        label:'日文 N5',   cls:'jp', color:'#2a9d8f'},
+  {key:'km-law',    label:'法學知識',  cls:'km', color:'#5a4fcf'},
+  {key:'km-eng',    label:'關務英文',  cls:'km', color:'#5a4fcf'},
+  {key:'km-admin',  label:'行政法',    cls:'km', color:'#5a4fcf'},
+  {key:'km-finance',label:'財政學',    cls:'km', color:'#5a4fcf'},
+  {key:'km-trade',  label:'國際貿易',  cls:'km', color:'#5a4fcf'},
+  {key:'km-chinese',label:'國文',      cls:'km', color:'#5a4fcf'},
+];
+
+function subjDef(key){return SUBJ_DEFS.find(s=>s.key===key)||{label:key,cls:'km',color:'#5a4fcf'};}
+
+function barColor(task){
+  if(!task)return'var(--c-km)';
+  if(task.includes('英'))return'var(--c-gr)';
+  if(task.includes('日'))return'var(--c-jp)';
+  if(task.includes('素'))return'var(--c-sk)';
+  return'var(--c-km)';
+}
+
+// ── HELPERS ──
+function todayStr(){return new Date().toISOString().slice(0,10);}
+function fmtDate(ds){
+  if(!ds)return'';
+  const d=new Date(ds+'T00:00:00');
+  const wd=['日','一','二','三','四','五','六'];
+  return`${d.getMonth()+1}/${d.getDate()}（${wd[d.getDay()]}）`;
+}
+function accClass(acc){
+  if(acc===null||acc==='essay'||acc==='speak')return acc==='speak'?'essay':'essay';
+  if(acc>=80)return'good'; if(acc>=60)return'warn'; return'bad';
+}
+function accLabel(acc){
+  if(acc===null)return'打卡';
+  if(acc==='essay')return'寫作'; if(acc==='speak')return'口說';
+  return acc+'%';
+}
+function accValClass(acc){
+  if(acc===null)return'sk';
+  if(acc==='essay'||acc==='speak')return'essay';
+  if(acc>=80)return'good'; if(acc>=60)return'warn'; return'bad';
+}
+
+function filterHistory(days){
+  const all=S.history||[];
+  if(!days)return all;
+  const cut=new Date(); cut.setDate(cut.getDate()-days);
+  const cutStr=cut.toISOString().slice(0,10);
+  return all.filter(h=>h.date>=cutStr);
+}
+
+function groupByDate(list){
+  const map={};
+  list.forEach(h=>{if(!map[h.date])map[h.date]=[];map[h.date].push(h);});
+  return Object.keys(map).sort((a,b)=>b.localeCompare(a)).map(d=>({date:d,items:map[d]}));
+}
+
+function calcSummary(list){
+  const sessions=list.length;
+  const xpTotal=list.reduce((a,h)=>a+(h.xp||0),0);
+  const mcList=list.filter(h=>typeof h.acc==='number');
+  const avgAcc=mcList.length?Math.round(mcList.reduce((a,h)=>a+h.acc,0)/mcList.length):null;
+  return{sessions,xpTotal,avgAcc};
+}
+
+// ── SUBJECT FILTER KEY ──
+// history items have h.task (display name) — match to subj key
+const TASK_TO_KEY={
+  '英檢初級 聽力':'gr-listen','英檢初級 閱讀':'gr-read',
+  '英檢初級 寫作':'gr-write','英檢初級 口說':'gr-speak',
+  '日文 N5':'jp','日文 N4':'jp',
+  '法學知識':'km-law','外國文（英文）':'km-eng','行政法':'km-admin',
+  '財政學':'km-finance','國際貿易實務':'km-trade','國文':'km-chinese',
+  '素描挑戰':'sk',
+};
+function taskToKey(task){
+  if(!task)return'';
+  for(const[k,v]of Object.entries(TASK_TO_KEY)){if(task.includes(k.slice(0,3)))return v;}
+  return task;
+}
+
+function subjHistory(list,key){
+  return list.filter(h=>taskToKey(h.task)===key||h.task===key);
+}
+
+function setRange(days,btn){
+  curRange=days;
+  document.querySelectorAll('.range-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function setSubj(key){
+  curSubj=key;
+  document.querySelectorAll('.subj-btn').forEach(b=>b.classList.remove('active'));
+  const btn=document.getElementById('sbtn-'+key);
+  if(btn){const def=subjDef(key);btn.classList.add('active',def.cls);}
+  renderAccChart(filterHistory(curRange));
+}
+
+// ── CHARTS ──
+function renderAccChart(filtered){
+  if(accChart){accChart.destroy();accChart=null;}
+  const wrap=document.getElementById('acc-chart-wrap');
+  if(!wrap)return;
+
+  const items=subjHistory(filtered,curSubj).filter(h=>typeof h.acc==='number');
+  if(items.length<2){
+    wrap.innerHTML=`<div class="no-data-msg">此科目需要至少 2 次測驗紀錄才能顯示趨勢</div>`;
+    return;
+  }
+  wrap.innerHTML='<canvas id="acc-canvas"></canvas>';
+  const def=subjDef(curSubj);
+  const labels=items.map(h=>fmtDate(h.date));
+  const data=items.map(h=>h.acc);
+  const ctx=document.getElementById('acc-canvas').getContext('2d');
+  accChart=new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets:[{
+      label:'正確率',data,
+      borderColor:def.color,
+      backgroundColor:def.color+'22',
+      borderWidth:2,pointBackgroundColor:def.color,
+      pointRadius:4,pointHoverRadius:6,tension:0.35,fill:true,
+    }]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`正確率：${c.raw}%`}}},
+      scales:{
+        y:{min:0,max:100,ticks:{callback:v=>v+'%',font:{family:'Nunito',size:11},color:'#a8a59e'},grid:{color:'rgba(0,0,0,0.05)'},border:{display:false}},
+        x:{ticks:{font:{family:'Nunito',size:10},color:'#a8a59e',maxRotation:40},grid:{display:false},border:{display:false}}
+      }
+    }
+  });
+}
+
+function renderXpChart(filtered){
+  if(xpChart){xpChart.destroy();xpChart=null;}
+  const el=document.getElementById('xp-canvas');
+  if(!el)return;
+  const byDate={};
+  filtered.forEach(h=>{if(!byDate[h.date])byDate[h.date]=0;byDate[h.date]+=(h.xp||0);});
+  const dates=Object.keys(byDate).sort().slice(-20);
+  if(!dates.length){el.parentElement.innerHTML=`<div class="no-data-msg">完成測驗後顯示每日 XP</div>`;return;}
+  const ctx=el.getContext('2d');
+  xpChart=new Chart(ctx,{
+    type:'bar',
+    data:{labels:dates.map(fmtDate),datasets:[{
+      label:'每日 XP',data:dates.map(d=>byDate[d]),
+      backgroundColor:'rgba(212,160,23,0.7)',borderColor:'#d4a017',
+      borderWidth:1.5,borderRadius:5,
+    }]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`+${c.raw} XP`}}},
+      scales:{
+        y:{ticks:{font:{family:'Nunito',size:11},color:'#a8a59e'},grid:{color:'rgba(0,0,0,0.05)'},border:{display:false}},
+        x:{ticks:{font:{family:'Nunito',size:10},color:'#a8a59e',maxRotation:40},grid:{display:false},border:{display:false}}
+      }
+    }
+  });
+}
+
+// ── SKETCH CALENDAR ──
+function renderSketchCal(filtered){
+  const skItems=filtered.filter(h=>h.task&&h.task.includes('素'));
+  const doneDates=new Set(skItems.map(h=>h.date));
+  const count=doneDates.size;
+
+  // build months in range
+  const end=new Date();
+  const days=curRange||90;
+  const start=new Date(); start.setDate(start.getDate()-Math.min(days,90));
+
+  // group into months
+  const months={};
+  const cur=new Date(start);
+  while(cur<=end){
+    const ds=cur.toISOString().slice(0,10);
+    const ym=ds.slice(0,7);
+    if(!months[ym])months[ym]=[];
+    months[ym].push(ds);
+    cur.setDate(cur.getDate()+1);
+  }
+
+  const mNames=['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+  let html=`<div class="cal-stats">這段時間共打卡 <strong>${count}</strong> 天</div><div style="margin-top:12px;overflow-x:auto;"><div class="cal-months">`;
+
+  Object.keys(months).sort().forEach(ym=>{
+    const [y,m]=ym.split('-');
+    const days=months[ym];
+    // find weekday of first day
+    const firstDay=new Date(days[0]+'T00:00:00').getDay();
+    html+=`<div class="cal-month" style="min-width:${Math.min(Object.keys(months).length,3)>1?'140px':'100%'}">`;
+    html+=`<div class="cal-month-label">${y}年 ${mNames[parseInt(m)-1]}</div>`;
+    html+=`<div class="cal-days">`;
+    // empty cells for offset
+    for(let i=0;i<firstDay;i++) html+=`<div class="cal-day empty"></div>`;
+    days.forEach(ds=>{
+      const done=doneDates.has(ds);
+      html+=`<div class="cal-day${done?' done':''}" title="${ds}"></div>`;
+    });
+    html+=`</div></div>`;
+  });
+
+  html+=`</div></div>`;
+  html+=`<div class="cal-legend">
+    <div class="cal-legend-box" style="background:var(--bg3)"></div><span class="cal-legend-label">未打卡</span>
+    <div class="cal-legend-box" style="background:var(--c-sk);margin-left:8px;"></div><span class="cal-legend-label">已打卡</span>
+  </div>`;
+  return html;
+}
+
+// ── MAIN RENDER ──
+function render(){
+  document.getElementById('xpv').textContent=S.xp.toLocaleString();
+  const filtered=filterHistory(curRange);
+
+  if(!filtered.length){
+    document.getElementById('main').innerHTML=`
+      <div class="empty-box fu d2">
+        <div class="empty-title">這個時間範圍沒有紀錄</div>
+        <div class="empty-sub">去完成幾次測驗後，這裡會自動記錄你的學習歷程。</div>
+        <a class="go-btn" href="quiz.html">前往每日測驗</a>
+      </div>`;
+    return;
+  }
+
+  const summary=calcSummary(filtered);
+  const groups=groupByDate(filtered);
+
+  // subject buttons — only show subjects that have data
+  const availKeys=new Set(filtered.map(h=>taskToKey(h.task)));
+  const hasSketch=filtered.some(h=>h.task&&h.task.includes('素'));
+  const mcSubjs=SUBJ_DEFS.filter(s=>availKeys.has(s.key));
+
+  // ensure curSubj is valid
+  if(mcSubjs.length&&!mcSubjs.find(s=>s.key===curSubj)) curSubj=mcSubjs[0].key;
+
+  const avgClass=summary.avgAcc===null?'':summary.avgAcc>=80?'green':summary.avgAcc>=60?'warn':'red';
+
+  let html=`
+  <!-- SUMMARY -->
+  <div class="summary-row fu d2">
+    <div class="stat-card">
+      <div class="stat-val purple">${summary.sessions}</div>
+      <div class="stat-lbl">測驗次數</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val gold">+${summary.xpTotal.toLocaleString()}</div>
+      <div class="stat-lbl">累積 XP</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val ${avgClass}">${summary.avgAcc!==null?summary.avgAcc+'%':'—'}</div>
+      <div class="stat-lbl">平均正確率</div>
+    </div>
+  </div>`;
+
+  // ── ACCURACY TREND ──
+  if(mcSubjs.length){
+    const activeDef=subjDef(curSubj);
+    const subjBtns=mcSubjs.map(s=>{
+      const isActive=s.key===curSubj;
+      return`<button class="subj-btn${isActive?' active '+s.cls:''}" id="sbtn-${s.key}" onclick="setSubj('${s.key}')">${s.label}</button>`;
+    }).join('');
+
+    html+=`<div class="chart-card fu d3">
+      <div class="chart-head">
+        <div class="chart-title">正確率趨勢</div>
+        <div class="subj-selector">${subjBtns}</div>
+      </div>
+      <div class="chart-wrap" id="acc-chart-wrap"><canvas id="acc-canvas"></canvas></div>
+    </div>`;
+  }
+
+  // ── XP CHART ──
+  html+=`<div class="xp-chart-card fu d3">
+    <div class="chart-title" style="margin-bottom:14px;">每日 XP 累積</div>
+    <div class="chart-wrap"><canvas id="xp-canvas"></canvas></div>
+  </div>`;
+
+  // ── SKETCH CALENDAR ──
+  if(hasSketch){
+    html+=`<div class="chart-card fu d4">
+      <div class="chart-title">素描打卡紀錄</div>
+      <div id="cal-wrap"></div>
+    </div>`;
+  }
+
+  // ── HISTORY LIST ──
+  html+=`<div class="sec-h fu d5">測驗紀錄</div><div class="hist-list fu d5">`;
+  groups.forEach(g=>{
+    html+=`<div class="group-head">${fmtDate(g.date)}</div>`;
+    g.items.forEach(h=>{
+      const vc=accValClass(h.acc);
+      const lbl=accLabel(h.acc);
+      html+=`<div class="hist-item">
+        <div class="hist-bar" style="background:${barColor(h.task)}"></div>
+        <div class="hist-body">
+          <div class="hist-subj">${h.task||'測驗'}</div>
+          <div class="hist-date">${fmtDate(h.date)}</div>
+        </div>
+        <div class="hist-right">
+          <div class="hist-acc ${vc}">${lbl}</div>
+          <div class="hist-xp">+${h.xp||0} XP</div>
+        </div>
+      </div>`;
+    });
+  });
+  html+=`</div>`;
+
+  document.getElementById('main').innerHTML=html;
+
+  // draw charts after DOM ready
+  setTimeout(()=>{
+    renderAccChart(filtered);
+    renderXpChart(filtered);
+    const calWrap=document.getElementById('cal-wrap');
+    if(calWrap)calWrap.innerHTML=renderSketchCal(filtered);
+  },80);
+}
+
+// ── DEMO DATA ──
+function injectDemo(){
+  if(S.history&&S.history.length)return;
+  const today=new Date();
+  const tasks=[
+    '英檢初級 聽力','英檢初級 閱讀','日文 N5',
+    '法學知識','行政法','財政學','素描挑戰',
+  ];
+  const demos=[];
+  for(let i=29;i>=0;i--){
+    if(Math.random()<0.65){
+      const d=new Date(today);d.setDate(d.getDate()-i);
+      const ds=d.toISOString().slice(0,10);
+      const task=tasks[Math.floor(Math.random()*tasks.length)];
+      const isSk=task==='素描挑戰';
+      const acc=isSk?null:Math.round(50+Math.random()*50);
+      demos.push({date:ds,task,acc,xp:Math.round(15+Math.random()*25)});
+    }
+  }
+  S.history=demos;
+}
+injectDemo();
+render();
+</script>
+</body>
+</html>

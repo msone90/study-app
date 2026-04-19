@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>模擬考試</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f7f6f2; --bg2:#ffffff; --bg3:#eeece6;
+  --text:#1e1c18; --text2:#6b6860; --text3:#a8a59e;
+  --border:rgba(0,0,0,0.08); --border2:rgba(0,0,0,0.14);
+  --radius:16px; --radius-sm:10px;
+  --shadow:0 2px 10px rgba(0,0,0,0.06); --shadow-md:0 4px 20px rgba(0,0,0,0.09);
+  --c-gr:#e05252; --c-gr-bg:#fdf2f2; --c-gr-bd:#f5c6c6;
+  --c-jp:#2a9d8f; --c-jp-bg:#edf7f6; --c-jp-bd:#b2deda;
+  --c-km:#5a4fcf; --c-km-bg:#f2f1fd; --c-km-bd:#cac7f5;
+  --c-xp:#d4a017;
+  --ok:#16a34a; --ok-bg:#f0fdf4; --ok-bd:#86efac;
+  --ng:#dc2626; --ng-bg:#fef2f2; --ng-bd:#fca5a5;
+  --warn:#d97706; --warn-bg:#fffbeb; --warn-bd:#fde68a;
+  --font-d:'Nunito','Noto Sans TC',sans-serif;
+  --font-b:'Noto Sans TC',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{background:var(--bg);}
+body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height:100vh;}
+.page{max-width:800px;margin:0 auto;padding:32px 28px 80px;}
+@media(max-width:600px){.page{padding:20px 16px 64px;}}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
+.back-btn{display:flex;align-items:center;gap:6px;background:var(--bg2);border:1.5px solid var(--border2);border-radius:24px;padding:8px 16px;font-size:13px;font-weight:700;font-family:var(--font-d);color:var(--text2);cursor:pointer;text-decoration:none;transition:box-shadow .2s;}
+.back-btn:hover{box-shadow:var(--shadow);}
+.page-title{font-family:var(--font-d);font-size:20px;font-weight:900;}
+.xp-chip{display:flex;align-items:center;gap:6px;background:var(--bg2);border:1.5px solid var(--border2);border-radius:24px;padding:7px 14px;}
+.xp-dot{width:14px;height:14px;border-radius:50%;background:var(--c-xp);}
+.xp-val{font-family:var(--font-d);font-size:14px;font-weight:800;color:var(--c-xp);}
+
+.screen{display:none;} .screen.active{display:block;}
+.sec-h{font-family:var(--font-d);font-size:11px;font-weight:800;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;}
+
+/* MONTHLY BANNER */
+.monthly-banner{border-radius:var(--radius);padding:14px 18px;margin-bottom:24px;border:1.5px solid;}
+.monthly-banner.done{background:var(--ok-bg);border-color:var(--ok-bd);}
+.monthly-banner.pending{background:var(--warn-bg);border-color:var(--warn-bd);}
+.mb-title{font-family:var(--font-d);font-size:14px;font-weight:800;margin-bottom:3px;}
+.monthly-banner.done .mb-title{color:var(--ok);}
+.monthly-banner.pending .mb-title{color:var(--warn);}
+.mb-sub{font-size:12px;color:var(--text2);}
+
+/* EXAM CARDS */
+.exam-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;}
+@media(max-width:480px){.exam-grid{grid-template-columns:1fr;}}
+.exam-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;cursor:pointer;transition:transform .18s,box-shadow .18s;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+.exam-card::before{content:'';position:absolute;right:-16px;top:-16px;width:72px;height:72px;border-radius:50%;opacity:.08;}
+.exam-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+.exam-card:active{transform:scale(.98);}
+.exam-card.gr{border-color:var(--c-gr-bd);}.exam-card.gr::before{background:var(--c-gr);}
+.exam-card.jp{border-color:var(--c-jp-bd);}.exam-card.jp::before{background:var(--c-jp);}
+.exam-card.km{border-color:var(--c-km-bd);}.exam-card.km::before{background:var(--c-km);}
+.exam-icon{font-family:var(--font-d);font-size:11px;font-weight:900;width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;}
+.exam-card.gr .exam-icon{background:var(--c-gr-bg);color:var(--c-gr);}
+.exam-card.jp .exam-icon{background:var(--c-jp-bg);color:var(--c-jp);}
+.exam-card.km .exam-icon{background:var(--c-km-bg);color:var(--c-km);}
+.exam-name{font-family:var(--font-d);font-size:15px;font-weight:800;margin-bottom:4px;}
+.exam-sub{font-size:12px;color:var(--text2);line-height:1.4;margin-bottom:10px;}
+.exam-meta{display:flex;flex-direction:column;gap:3px;}
+.exam-meta-item{font-size:11px;color:var(--text3);font-family:var(--font-d);}
+.exam-meta-item strong{color:var(--text2);}
+.last-score{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:11px;color:var(--text3);font-family:var(--font-d);}
+.last-score span{font-weight:700;color:var(--c-km);}
+
+/* KM SUBMENU */
+.km-sub-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.km-sub-card{background:var(--bg2);border:1.5px solid var(--c-km-bd);border-radius:var(--radius-sm);padding:14px 18px;cursor:pointer;transition:background .15s,transform .15s;display:flex;align-items:center;justify-content:space-between;}
+.km-sub-card:hover{background:var(--c-km-bg);transform:translateX(3px);}
+.km-sub-left .km-sub-name{font-family:var(--font-d);font-size:14px;font-weight:800;color:var(--c-km);margin-bottom:2px;}
+.km-sub-left .km-sub-desc{font-size:12px;color:var(--text2);}
+.km-sub-right{text-align:right;flex-shrink:0;}
+.km-sub-time{font-family:var(--font-d);font-size:12px;font-weight:700;color:var(--text3);}
+.km-sub-type{font-size:10px;color:var(--text3);margin-top:2px;}
+
+/* INTRO PANEL */
+.intro-panel{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);margin-bottom:20px;}
+.intro-title{font-family:var(--font-d);font-size:18px;font-weight:900;margin-bottom:6px;}
+.intro-sub{font-size:13px;color:var(--text2);margin-bottom:18px;line-height:1.5;}
+.intro-specs{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.spec-row{display:flex;align-items:center;gap:10px;}
+.spec-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.spec-text{font-size:13px;color:var(--text);}
+.spec-text strong{font-weight:700;}
+.start-exam-btn{width:100%;padding:15px;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:var(--font-d);cursor:pointer;transition:opacity .15s;color:white;}
+.start-exam-btn.gr{background:var(--c-gr);}
+.start-exam-btn.jp{background:var(--c-jp);}
+.start-exam-btn.km{background:var(--c-km);}
+.start-exam-btn:hover{opacity:.9;}
+
+/* EXAM SCREEN */
+.exam-topbar{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);padding:12px 18px;margin-bottom:20px;box-shadow:var(--shadow);}
+.exam-subj-tag{font-family:var(--font-d);font-size:13px;font-weight:800;}
+.timer-wrap{display:flex;align-items:center;gap:8px;}
+.timer-icon{width:8px;height:8px;border-radius:50%;background:var(--ok);}
+.timer-icon.warn{background:var(--warn);}
+.timer-display{font-family:var(--font-d);font-size:16px;font-weight:900;color:var(--text);}
+.timer-display.warn{color:var(--warn);}
+.submit-btn{padding:8px 18px;background:var(--c-km);color:white;border:none;border-radius:24px;font-size:12px;font-weight:700;font-family:var(--font-d);cursor:pointer;}
+
+.section-divider{background:var(--bg3);border-radius:var(--radius-sm);padding:10px 16px;margin:20px 0 14px;display:flex;align-items:center;justify-content:space-between;}
+.section-divider-name{font-family:var(--font-d);font-size:13px;font-weight:800;color:var(--text);}
+.section-divider-meta{font-size:11px;color:var(--text3);font-family:var(--font-d);}
+
+/* AUDIO BOX */
+.audio-box{background:var(--bg2);border:1.5px solid var(--c-jp-bd);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;gap:12px;}
+.play-btn{width:40px;height:40px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .15s;}
+.play-btn:hover{opacity:.85;}
+.play-btn svg{width:16px;height:16px;fill:white;}
+.audio-label{font-size:10px;font-weight:800;font-family:var(--font-d);margin-bottom:3px;}
+.audio-text{font-size:13px;color:var(--text);line-height:1.55;}
+
+/* Q CARD */
+.q-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:14px;box-shadow:var(--shadow);}
+.q-num{font-family:var(--font-d);font-size:11px;font-weight:800;color:var(--text3);margin-bottom:8px;}
+.q-text{font-size:16px;font-weight:700;line-height:1.55;margin-bottom:6px;}
+.q-sub{font-size:13px;color:var(--text2);margin-top:6px;line-height:1.6;}
+.q-passage{font-size:13px;color:var(--text);margin-top:10px;line-height:1.7;background:var(--bg);border-radius:var(--radius-sm);padding:12px 14px;border-left:3px solid var(--border2);}
+
+/* OPTIONS */
+.options{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
+.opt{background:var(--bg2);border:1.5px solid var(--border2);border-radius:var(--radius-sm);padding:12px 16px;text-align:left;font-size:14px;font-family:var(--font-b);color:var(--text);cursor:pointer;transition:all .15s;width:100%;display:flex;align-items:flex-start;gap:10px;}
+.opt:hover{background:var(--bg3);}
+.opt.selected{border-color:var(--c-km);background:var(--c-km-bg);}
+.opt-label{font-family:var(--font-d);font-size:12px;font-weight:800;width:18px;flex-shrink:0;color:var(--text3);}
+.opt.selected .opt-label{color:var(--c-km);}
+.opt-text{flex:1;line-height:1.4;}
+
+/* ESSAY IN EXAM */
+.essay-exam-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:14px;box-shadow:var(--shadow);}
+.essay-exam-badge{display:inline-block;background:var(--warn-bg);border:1px solid var(--warn-bd);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:800;font-family:var(--font-d);color:var(--warn);margin-bottom:10px;}
+.essay-exam-q{font-size:15px;font-weight:700;line-height:1.55;margin-bottom:10px;}
+.essay-exam-note{font-size:12px;color:var(--text2);line-height:1.5;background:var(--bg);border-radius:var(--radius-sm);padding:10px 14px;}
+
+/* RESULT */
+.result-header{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);margin-bottom:20px;text-align:center;}
+.result-exam-name{font-size:13px;color:var(--text2);margin-bottom:12px;font-family:var(--font-d);}
+.pass-badge{display:inline-block;border-radius:24px;padding:6px 20px;font-family:var(--font-d);font-size:14px;font-weight:800;margin-bottom:16px;}
+.pass-badge.pass{background:var(--ok-bg);color:var(--ok);border:1.5px solid var(--ok-bd);}
+.pass-badge.fail{background:var(--ng-bg);color:var(--ng);border:1.5px solid var(--ng-bd);}
+.pass-badge.ref{background:var(--warn-bg);color:var(--warn);border:1.5px solid var(--warn-bd);}
+.score-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+@media(max-width:400px){.score-grid{grid-template-columns:1fr 1fr;}}
+.score-cell{background:var(--bg);border-radius:var(--radius-sm);padding:12px 8px;text-align:center;}
+.score-val{font-family:var(--font-d);font-size:22px;font-weight:900;color:var(--text);}
+.score-val.pass{color:var(--ok);}
+.score-val.fail{color:var(--ng);}
+.score-label{font-size:10px;color:var(--text3);margin-top:3px;font-family:var(--font-d);}
+.result-msg{font-size:13px;color:var(--text2);line-height:1.6;}
+.xp-earned{display:inline-block;background:#fef9ec;border:1.5px solid #fde68a;border-radius:24px;padding:7px 20px;font-family:var(--font-d);font-size:16px;font-weight:800;color:var(--c-xp);margin-top:12px;}
+
+.wrong-panel{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:20px;}
+.wrong-head{font-family:var(--font-d);font-size:14px;font-weight:800;color:var(--ng);margin-bottom:14px;}
+.wrong-item{padding:10px 0;border-bottom:1px solid var(--border);}
+.wrong-item:last-child{border-bottom:none;padding-bottom:0;}
+.wrong-q{font-size:13px;font-weight:700;margin-bottom:3px;}
+.wrong-detail{display:flex;gap:16px;font-size:12px;color:var(--text2);}
+.wrong-detail .correct{color:var(--ok);font-weight:700;}
+.wrong-detail .yours{color:var(--ng);}
+
+.compare-panel{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:20px;}
+.compare-head{font-family:var(--font-d);font-size:14px;font-weight:800;margin-bottom:14px;}
+.compare-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);}
+.compare-row:last-child{border-bottom:none;}
+.compare-date{font-size:12px;color:var(--text3);font-family:var(--font-d);width:80px;flex-shrink:0;}
+.compare-bar-wrap{flex:1;height:8px;background:var(--bg3);border-radius:10px;overflow:hidden;}
+.compare-bar{height:100%;border-radius:10px;transition:width .8s cubic-bezier(.4,0,.2,1);}
+.compare-score{font-family:var(--font-d);font-size:13px;font-weight:800;width:48px;text-align:right;flex-shrink:0;}
+
+.result-btns{display:flex;gap:12px;margin-top:4px;}
+.rb-again{flex:1;padding:14px;background:white;border:2px solid var(--c-km);border-radius:var(--radius-sm);font-size:14px;font-weight:800;font-family:var(--font-d);cursor:pointer;color:var(--c-km);}
+.rb-home{flex:1;padding:14px;background:var(--c-km);color:white;border:2px solid var(--c-km);border-radius:var(--radius-sm);font-size:14px;font-weight:800;font-family:var(--font-d);cursor:pointer;}
+
+/* COIN */
+@keyframes cf{0%{opacity:0;transform:translateY(0) scale(.4)}20%{opacity:1;transform:translateY(-12px) scale(1.15)}80%{opacity:1;transform:translateY(-60px)}100%{opacity:0;transform:translateY(-88px) scale(.4)}}
+.coin-el{position:fixed;pointer-events:none;z-index:999;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe066,#f9c846,#d4a017);border:1.5px solid #e5a800;animation:cf .95s ease-out forwards;}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(12px);background:var(--text);color:white;border-radius:24px;padding:10px 22px;font-size:13px;font-family:var(--font-d);font-weight:700;opacity:0;transition:all .28s;z-index:300;white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.fu{animation:fadeUp .38s ease both;}
+.d1{animation-delay:.04s}.d2{animation-delay:.1s}.d3{animation-delay:.16s}.d4{animation-delay:.22s}
+</style>
+</head>
+<body>
+<div id="cl" style="position:fixed;inset:0;pointer-events:none;z-index:998;"></div>
+<div class="toast" id="toast"></div>
+
+<div class="page">
+  <div class="topbar fu d1">
+    <a class="back-btn" href="dashboard.html">← 返回儀表板</a>
+    <div class="page-title">模擬考試</div>
+    <div class="xp-chip"><div class="xp-dot"></div><span class="xp-val" id="xpv">0</span></div>
+  </div>
+  <div id="main"></div>
+</div>
+
+<script>
+// ── STATE ──
+function defS(){return{xp:0,mockHistory:[]};}
+let S=(()=>{try{return{...defS(),...JSON.parse(localStorage.getItem('lq3'))};}catch(e){return defS();}})();
+const sv=()=>localStorage.setItem('lq3',JSON.stringify(S));
+
+// ── EXAM DEFINITIONS ──
+const EXAMS={
+  gr:{
+    key:'gr', label:'全民英檢初級', cls:'gr',
+    sub:'聽力 + 閱讀（合併模擬）',
+    specs:[
+      {label:'聽力測驗',val:'30 題，約 20 分鐘'},
+      {label:'閱讀測驗',val:'30 題，35 分鐘'},
+      {label:'通過標準',val:'總分 160 分，單項不低於 72 分'},
+      {label:'計時方式',val:'顯示用時，不強制交卷'},
+    ],
+    totalMins:55,
+  },
+  jp:{
+    key:'jp', label:'日本語能力試験 N5', cls:'jp',
+    sub:'言語知識・讀解 + 聽解',
+    specs:[
+      {label:'言語知識・讀解',val:'60 分鐘'},
+      {label:'聽解',val:'約 30 分鐘'},
+      {label:'通過標準',val:'總分 80 分，言語知識・讀解 38 分，聽解 19 分'},
+      {label:'計時方式',val:'顯示用時，不強制交卷'},
+    ],
+    totalMins:90,
+  },
+  km:{
+    key:'km', label:'關務三等特考', cls:'km',
+    sub:'選擇一科進行單科模擬',
+    specs:[],
+    totalMins:120,
+    subs:[
+      {key:'km-law',     label:'法學知識',     desc:'憲法 + 法學緒論，50 題選擇題', time:60,  type:'mc'},
+      {key:'km-chinese', label:'國文',         desc:'作文 2 題 + 測驗 10 題',       time:120, type:'mix'},
+      {key:'km-admin',   label:'行政法',       desc:'申論題 3 題',                   time:120, type:'essay'},
+      {key:'km-finance', label:'財政學',       desc:'申論題 3 題',                   time:120, type:'essay'},
+      {key:'km-trade',   label:'國際貿易實務', desc:'申論題 3 題',                   time:120, type:'essay'},
+      {key:'km-eng',     label:'外國文（英文）',desc:'混合式，選擇 + 翻譯',          time:120, type:'mix'},
+    ]
+  }
+};
+
+// ── QUESTIONS ──
+const ABCD=['A','B','C','D'];
+
+// GEPT listening
+const GEPT_LISTEN=[
+  {type:'看圖辨義',audio:'A man is standing at a bus stop, looking at his watch and holding an umbrella.',q:'根據描述，這個男士最可能在做什麼？',opts:['Waiting for a bus in the rain.','Reading a newspaper at home.','Shopping in a store.','Eating lunch outside.'],ans:0,exp:'關鍵詞：bus stop（公車站）、watch（手錶）、umbrella（雨傘），選 A。'},
+  {type:'問答',audio:'How was your weekend?',q:'最自然的回應是？',opts:['It was great! I went hiking.','Yes, I like weekdays.','The weekend is two days.','I work on Saturdays.'],ans:0,exp:'"How was your weekend?" 詢問週末過得如何，自然回應描述活動，選 A。'},
+  {type:'簡短對話',audio:'Woman: I can\'t find my keys. Man: Did you check your coat pocket? Woman: Oh! They\'re here. Thanks!',q:'女士的鑰匙在哪裡？',opts:['In her coat pocket.','On the table.','In her bag.','She lost them.'],ans:0,exp:'女士說 "They\'re here" 在男士建議看外套口袋後，答案是外套口袋。'},
+  {type:'短文聽解',audio:'The school library will be open this Saturday from 9 AM to 5 PM for students preparing for exams. Please bring your student ID.',q:'圖書館這週六的開放時間是？',opts:['9 AM to 5 PM.','8 AM to 6 PM.','All day.','It will be closed.'],ans:0,exp:'短文說 "9 AM to 5 PM"，選 A。'},
+  {type:'看圖辨義',audio:'Three people are sitting around a table, looking at documents and having a discussion.',q:'這些人最可能在做什麼？',opts:['Having a meeting.','Having dinner.','Playing cards.','Watching TV.'],ans:0,exp:'table + documents + discussion = 會議場景，選 A。'},
+  {type:'問答',audio:'Excuse me, where is the nearest bank?',q:'最適合的回應是？',opts:['It\'s on the next street, about 5 minutes away.','I don\'t have any money.','Banks open at nine.','Yes, I need to go to the bank too.'],ans:0,exp:'詢問地點，正確回應應給予方向或距離說明，選 A。'},
+  {type:'簡短對話',audio:'Man: Are you coming to the party tonight? Woman: I\'d love to, but I have to finish this report first.',q:'女士為什麼可能無法參加派對？',opts:['She has to finish a report.','She is not invited.','She doesn\'t like parties.','She has to work overtime.'],ans:0,exp:'女士說 "I have to finish this report first"，所以是要完成報告，選 A。'},
+  {type:'短文聽解',audio:'Good morning, passengers. This is your captain speaking. We will be landing in Taipei in about 30 minutes. The local time is 2:15 PM, and the weather is sunny with a temperature of 28 degrees.',q:'飛機大約何時抵達台北？',opts:['In about 30 minutes.','In 15 minutes.','At 2:15 PM exactly.','In one hour.'],ans:0,exp:'機長說 "landing in about 30 minutes"，選 A。'},
+  {type:'問答',audio:'Would you like some more tea?',q:'最自然的回應是？',opts:['Yes, please. Thank you.','Tea is a popular drink.','I drink tea every morning.','The tea is very hot.'],ans:0,exp:'詢問是否需要更多茶，自然回應接受或拒絕，選 A。'},
+  {type:'簡短對話',audio:'A: Did you see the game last night? B: No, I fell asleep before it started. A: You missed a great match!',q:'B 為什麼沒看比賽？',opts:['He fell asleep.','He was busy working.','He doesn\'t like sports.','He forgot about it.'],ans:0,exp:'B 說 "I fell asleep before it started"，選 A。'},
+];
+
+// GEPT reading
+const GEPT_READ=[
+  {type:'詞彙',q:'The weather forecast ___ heavy rain tomorrow morning.',opts:['predicts','decides','creates','controls'],ans:0,exp:'"predicts" = 預測，天氣預報預測雨，選 A。'},
+  {type:'詞彙',q:'She forgot to ___ the lights before leaving the office.',opts:['turn off','turn up','turn in','turn over'],ans:0,exp:'"turn off the lights" = 關燈，離開時關燈，選 A。'},
+  {type:'詞彙',q:'The train was delayed ___ a signal failure.',opts:['due to','in order to','instead of','apart from'],ans:0,exp:'"due to" + 名詞表示原因，因為信號故障而延誤，選 A。'},
+  {type:'段落填空',q:'Online shopping has become very popular. People can buy almost anything ___ the internet without leaving their homes.',opts:['through','despite','besides','unless'],ans:0,exp:'"through the internet" = 透過網路，固定搭配，選 A。'},
+  {type:'段落填空',q:'Regular exercise is important for good health. ___ you exercise every day, you will feel more energetic.',opts:['If','Although','Because','Unless'],ans:0,exp:'"If you exercise..." 條件句，如果你每天運動，你會感覺更有活力，選 A。'},
+  {type:'閱讀理解',passage:'The city announced that all public parks will be closed next Sunday for maintenance. The parks will reopen on Monday. Residents are advised to enjoy the parks this Saturday before the closure.',q:'公園什麼時候重新開放？',opts:['Monday.','Sunday.','Saturday.','Tuesday.'],ans:0,exp:'文章說 "reopen on Monday"，選 A。'},
+  {type:'詞彙',q:'He worked very hard and ___ passed the exam.',opts:['finally','recently','hardly','rarely'],ans:0,exp:'"finally" = 終於，努力後終於通過考試，符合語意，選 A。'},
+  {type:'段落填空',q:'Technology has made communication easier. ___ smartphones, people can stay in touch with friends and family around the world.',opts:['With','Without','Despite','Against'],ans:0,exp:'"With smartphones" = 有了智慧型手機，表示工具，選 A。'},
+  {type:'閱讀理解',passage:'Fresh Market opens every Saturday morning from 7 to 12. Local farmers sell vegetables, fruits, and homemade products. Parking is free, and pets are welcome.',q:'關於 Fresh Market 哪項敘述正確？',opts:['Pets are allowed.','It opens every day.','Parking costs money.','It closes at noon on weekdays.'],ans:0,exp:'文章說 "pets are welcome"（寵物歡迎），選 A。'},
+  {type:'詞彙',q:'The doctor ___ the patient to get more rest and drink plenty of water.',opts:['advised','forced','ordered','demanded'],ans:0,exp:'"advised" = 建議，醫生建議病人休息，語氣最自然，選 A。'},
+];
+
+// JLPT N5
+const JP_LANG=[
+  {type:'文字・語彙',q:'「食べる」の意味は何ですか？',opts:['食べる','飲む','見る','寝る'],ans:0,exp:'食べる（たべる）= 吃，動詞二類。',tc:'「食べる」的意思是？'},
+  {type:'文字・語彙',q:'「大きい」の意味は何ですか？',opts:['大的','小的','長的','重的'],ans:0,exp:'大きい（おおきい）= 大的，い形容詞。',tc:'「大きい」的意思是？'},
+  {type:'文法',q:'私は学校（　）行きます。',opts:['に','を','が','は'],ans:0,exp:'移動目的地用助詞「に」，表示去的地點。',tc:'我去學校，括號填？'},
+  {type:'文字・語彙',q:'「月曜日」の読み方は？',opts:['げつようび','かようび','すいようび','もくようび'],ans:0,exp:'月曜日（げつようび）= 星期一。',tc:'「月曜日」怎麼讀？'},
+  {type:'文法',q:'これ（　）本です。',opts:['は','に','を','も'],ans:0,exp:'「は」是主題助詞，「これは本です」= 這是書。',tc:'這是書，括號填？'},
+  {type:'文字・語彙',q:'「新しい」の意味は？',opts:['新的','舊的','快的','慢的'],ans:0,exp:'新しい（あたらしい）= 新的。',tc:'「新しい」的意思是？'},
+  {type:'文法',q:'毎日、日本語（　）勉強します。',opts:['を','に','は','が'],ans:0,exp:'學習的對象用助詞「を」。',tc:'每天學習日文，括號填？'},
+  {type:'文字・語彙',q:'「来る」の意味は？',opts:['來','去','回去','走'],ans:0,exp:'来る（くる）= 來，不規則動詞。',tc:'「来る」的意思是？'},
+  {type:'讀解',q:'「明日は学校が休みです。だから、家にいます。」\nこの人は明日どこにいますか？',opts:['家','学校','公園','図書館'],ans:0,exp:'文中說「家にいます」= 在家，選 A。',tc:'明天學校放假，這個人在哪裡？'},
+  {type:'文法',q:'田中さん（　）先生ですか？',opts:['は','が','を','に'],ans:0,exp:'「田中さんは先生ですか？」= 田中先生是老師嗎？用主題助詞「は」。',tc:'田中先生是老師嗎，括號填？'},
+];
+
+const JP_LISTEN=[
+  {type:'聽解',audio:'男の人：田中さん、明日映画を見に行きませんか？\n田中さん：いいですね。何時ですか？\n男の人：午後三時はどうですか？\n田中さん：大丈夫です。',q:'二人は何時に映画を見に行きますか？',tc:'兩人幾點去看電影？',opts:['三時','二時','四時','一時'],ans:0,exp:'男士說「午後三時はどうですか？」（下午三點如何？），田中同意，選 A。'},
+  {type:'聽解',audio:'女の人：すみません、駅はどこですか？\n男の人：あそこです。あの建物の右です。',q:'駅はどこですか？',tc:'車站在哪裡？',opts:['建物の右','建物の左','建物の前','建物の後ろ'],ans:0,exp:'男士說「あの建物の右です」= 在那棟建物的右邊，選 A。'},
+  {type:'聽解',audio:'男の人：何を飲みますか？\n女の人：コーヒーをください。\n男の人：砂糖は？\n女の人：いいえ、けっこうです。',q:'女の人は何を飲みますか？',tc:'女士喝什麼？',opts:['コーヒー（無砂糖）','コーヒー（有砂糖）','お茶','水'],ans:0,exp:'女士要咖啡，並拒絕砂糖（けっこうです = 不用了），選 A。'},
+  {type:'聽解',audio:'今日は月曜日です。田中さんは今日と水曜日と金曜日に日本語を勉強します。',q:'田中さんは何曜日に日本語を勉強しますか？',tc:'田中何天學習日文？',opts:['月・水・金','月・火・木','火・木・土','月・水・土'],ans:0,exp:'文中說「今日（月）と水曜日と金曜日」= 週一、三、五，選 A。'},
+  {type:'聽解',audio:'女の人：山田さんのかばんはどれですか？\n男の人：あの大きい青いかばんです。',q:'山田さんのかばんはどれですか？',tc:'山田的包包是哪個？',opts:['大きい青いかばん','小さい青いかばん','大きい赤いかばん','小さい黒いかばん'],ans:0,exp:'男士說「大きい青いかばん」= 大的藍色包包，選 A。'},
+];
+
+// Kanmu questions
+const KM_LAW_MC=[
+  {type:'憲法',q:'依中華民國憲法，行政院對何機關負責？',opts:['立法院','司法院','監察院','總統府'],ans:0,exp:'憲法第57條，行政院對立法院負責。'},
+  {type:'法學緒論',q:'習慣法成立的要件為何？',opts:['長期慣行＋法律確信','法院判決＋學者同意','政府公告＋人民接受','立法通過＋公布施行'],ans:0,exp:'習慣法須具備長期慣行的事實及法律確信兩要件。'},
+  {type:'憲法',q:'憲法第23條限制人民自由的條件不包括？',opts:['政府財政需要','防止妨礙他人自由','避免緊急危難','增進公共利益'],ans:0,exp:'憲法23條四要件不包含政府財政需要。'},
+  {type:'法學緒論',q:'「法律不溯及既往」原則主要保障？',opts:['人民對法律的信賴','行政效率','司法獨立','立法效率'],ans:0,exp:'保障法安定性與信賴保護原則。'},
+  {type:'憲法',q:'下列何者不屬於司法院大法官職權？',opts:['審理一般民刑事案件','解釋憲法','統一解釋法律','審理政黨違憲解散案'],ans:0,exp:'一般民刑事由普通法院審理，非大法官職權。'},
+  {type:'憲法',q:'總統由何方式選出？',opts:['全體公民直選','立法院選舉','國民大會選舉','行政院提名'],ans:0,exp:'依憲法增修條文，總統由中華民國自由地區全體公民直選。'},
+  {type:'法學緒論',q:'下列何者屬於「公法」關係？',opts:['人民申請建築執照','買賣房屋契約','公司股東大會','消費者購物'],ans:0,exp:'申請建築執照涉及政府公權力行使，屬公法關係。'},
+  {type:'憲法',q:'人民有依法律服兵役之義務，此為憲法第幾條？',opts:['第20條','第14條','第23條','第11條'],ans:0,exp:'憲法第20條：人民有依法律服兵役之義務。'},
+  {type:'法學緒論',q:'下列何者為「成文法」？',opts:['民法','習慣法','判例','法理'],ans:0,exp:'成文法是指經由立法程序制定並公布的法律，民法屬之。'},
+  {type:'憲法',q:'言論自由受憲法保障，但可依憲法第23條以法律限制，下列何者符合限制要件？',opts:['煽動他人犯罪的言論','批評政府政策的言論','表達個人意見的言論','報導新聞事件的言論'],ans:0,exp:'煽動犯罪妨礙他人自由及社會秩序，符合憲法23條限制要件。'},
+];
+
+const KM_ADMIN_ESSAY=[
+  {type:'申論題',q:'一、試說明行政處分之「撤銷」與「廢止」的意涵及區別，並各舉一例說明。（25分）',points:'【撤銷】針對違法行政處分，溯及既往使其自始無效（行政程序法§117）\n【廢止】針對合法行政處分，向後失效（行政程序法§122）\n區別重點：合法/違法、溯及既往/向後失效',ref:'撤銷：A建照申請因公務員誤算面積而核發，事後發現違法，予以撤銷，效力溯及既往。廢止：原核發計程車牌照，因法規修訂限縮數量，廢止部分牌照，不溯及既往。'},
+  {type:'申論題',q:'二、試說明「比例原則」的三個子原則，並說明其在行政法上的重要性。（25分）',points:'【適當性原則】手段須有助於目的達成\n【必要性原則】在可達成目的的手段中，選擇對人民侵害最小者\n【相當性原則】手段與目的間須合乎比例，不得過度',ref:'比例原則為行政法上最重要的基本原則之一，源自德國法，現明文規定於行政程序法§7。'},
+  {type:'申論題',q:'三、何謂「信賴保護原則」？試說明其構成要件及在行政法中的適用。（25分）',points:'【意義】人民基於對行政行為的信賴而採取行動，行政機關不得任意撤銷或廢止\n【要件】存在信賴基礎、有信賴行為、值得保護的信賴利益\n【適用】行政程序法§8明定誠信原則及信賴保護',ref:'信賴保護原則是法治國原則的重要內涵，保障人民對國家行為的合理期待，使行政行為具有可預測性。'},
+];
+
+const KM_FINANCE_ESSAY=[
+  {type:'申論題',q:'一、試說明「公共財」的定義及其兩大特性，並舉例說明純公共財與準公共財的差異。（25分）',points:'【定義】市場機制無法有效提供的財貨\n【非排他性】無法排除未付費者享用\n【非敵對性】多人消費不影響他人享用品質\n純公共財：國防、燈塔；準公共財：道路、公共電視',ref:'公共財為市場失靈的主要原因之一，因搭便車問題（free rider problem）導致私人部門供給不足，需政府介入提供。'},
+  {type:'申論題',q:'二、試說明「外部性」的意義，並分別說明正外部性與負外部性的政府矯正方式。（25分）',points:'【意義】私人行為使第三者受益或受損，未反映於市場價格\n【負外部性矯正】課徵庇古稅、管制、排放權交易\n【正外部性矯正】政府補貼、直接提供',ref:'外部性是市場失靈的重要原因。庇古（Pigou）主張以稅收（庇古稅）將外部成本內部化，為常見的政府矯正手段。'},
+  {type:'申論題',q:'三、試說明「李嘉圖等值定理」的內容，並分析其在現實中的限制。（25分）',points:'【內容】政府舉債與課稅對消費影響相同，理性人民預期未來課稅而增加儲蓄\n【限制】流動性限制、有限壽命、借貸利率差異、非理性行為',ref:'李嘉圖等值定理（Ricardian Equivalence）由Barro（1974）正式提出，指出在特定假設下，財政赤字融資不影響總需求，但現實中因多項限制而存在爭議。'},
+];
+
+const KM_TRADE_ESSAY=[
+  {type:'申論題',q:'一、試說明提單（Bill of Lading）的性質及三大功能，並說明其在信用狀交易中的重要性。（25分）',points:'【三大功能】運送契約憑證、貨物收據、物權憑證\n【信用狀重要性】銀行控制提單即控制貨物，是審查付款的核心單據',ref:'提單（B/L）是國際海運貿易最重要的文件。在信用狀交易中，出口商憑合格提單向押匯銀行請款，銀行取得提單後寄往開狀銀行，進口商贖單後方可提貨，有效降低買賣雙方的交易風險。'},
+  {type:'申論題',q:'二、試比較 CIF 與 FOB 兩種貿易條件的意義，並說明風險移轉時點的差異。（25分）',points:'【FOB】賣方在裝貨港將貨物裝上船時，費用與風險移轉買方\n【CIF】賣方需支付至目的港的運費與保險費，但風險仍在裝船時移轉\n關鍵差異：費用負擔不同，但風險移轉時點相同',ref:'FOB（Free On Board）與CIF（Cost, Insurance and Freight）均為Incoterms（國際貿易條規）中常用的貿易術語，選擇不同條件會影響買賣雙方的成本分配與責任歸屬。'},
+  {type:'申論題',q:'三、試說明信用狀（Letter of Credit）交易的基本流程，並說明其對買賣雙方各有何保障。（25分）',points:'【流程】買方申請→開狀銀行開狀→通知銀行轉知→賣方出貨→提示單據→銀行審查付款\n【對賣方】確保付款，降低信用風險\n【對買方】確保單據符合後才付款，降低詐欺風險',ref:'信用狀（L/C）是一種銀行信用替代商業信用的支付工具。開狀銀行的付款承諾獨立於買賣契約之外，只要賣方提示符合信用狀條款的單據，銀行即須付款，有效解決國際貿易中買賣雙方互不信任的問題。'},
+];
+
+const KM_CHINESE_ESSAY=[
+  {type:'作文',q:'一、請以「面對挑戰」為題，作文一篇（40分）\n說明：請論述你對面對挑戰的看法，並舉例說明挑戰如何促進個人成長。',points:'【結構建議】\n開頭：以名言或情境破題\n段一：挑戰的意義（鍛鍊心志、發現潛能）\n段二：具體例子說明（歷史人物或個人經驗）\n結尾：呼應主題，提出積極態度',ref:'參考破題：「天將降大任於是人也，必先苦其心志，勞其筋骨…」（《孟子》）\n挑戰並非阻礙，而是成長的催化劑。每一次克服困難的過程，都是磨礪意志、發現自我潛能的機會。'},
+  {type:'作文',q:'二、請以「科技改變生活」為題，作文一篇（40分）\n說明：請從正面與反面兩個角度，論述科技對現代生活的影響。',points:'【結構建議】\n開頭：科技發展的現況\n段一：正面影響（便利、效率、溝通）\n段二：反面影響（依賴、隱私、人際疏離）\n結尾：平衡看待科技，善加運用',ref:'科技是一把雙面刃。智慧型手機讓溝通無遠弗屆，卻也讓人沉浸於虛擬世界而忽略了真實的人際關係。如何在科技便利與人文關懷之間取得平衡，是現代人必須思考的課題。'},
+];
+const KM_CHINESE_MC=[
+  {type:'測驗',q:'下列文句「」中成語的使用，何者正確？',opts:['他雖失敗多次，仍「鍥而不捨」地繼續努力','這次考試題目很難，讓他「易如反掌」地通過','他演講時「語焉不詳」，令聽眾讚嘆不已','她的歌聲「不絕如縷」，震耳欲聾'],ans:0,exp:'「鍥而不捨」= 持之以恆，用於屢敗仍堅持的情境，用法正確。'},
+  {type:'測驗',q:'「洛陽紙貴」典故源自誰的作品廣受歡迎？',opts:['左思','王羲之','陶淵明','杜甫'],ans:0,exp:'西晉左思《三都賦》成名後，眾人爭相傳抄，導致洛陽紙張漲價。'},
+  {type:'測驗',q:'下列何者為「形聲字」？',opts:['江','日','山','木'],ans:0,exp:'江（氵+工）形旁表義、聲旁標音，是形聲字。日、山、木均為象形字。'},
+  {type:'測驗',q:'「爾虞我詐」形容的是？',opts:['互相欺騙，勾心鬥角','奮發向上，積極進取','同甘共苦，相互扶持','各自為政，互不往來'],ans:0,exp:'爾虞我詐：彼此互相欺騙，出自《左傳》。'},
+  {type:'測驗',q:'下列句子何者沒有語病？',opts:['我們應提升生活品質，而非一味追求物質享受','他的意見雖然正確，但說話方式讓人反感，所以大家不支持他','這問題大家都知道應如何解決它的方法','由於天氣惡劣的原因，所以比賽延期'],ans:0,exp:'A語意通順。B前後矛盾。C「解決」與「方法」重複。D「由於…原因」與「所以」重複。'},
+];
+
+const QB_MAP={
+  gr:{listen:GEPT_LISTEN,read:GEPT_READ},
+  jp:{lang:JP_LANG,listen:JP_LISTEN},
+  'km-law':{mc:KM_LAW_MC},
+  'km-admin':{essay:KM_ADMIN_ESSAY},
+  'km-finance':{essay:KM_FINANCE_ESSAY},
+  'km-trade':{essay:KM_TRADE_ESSAY},
+  'km-chinese':{mc:KM_CHINESE_MC,essay:KM_CHINESE_ESSAY},
+};
+
+// ── EXAM STATE ──
+let curExam='', curSub='', examQuestions=[], examAnswers=[], timerInterval=null, elapsedSecs=0;
+
+// ── MONTHLY CHECK ──
+function thisMonth(){return new Date().toISOString().slice(0,7);}
+function doneThisMonth(){
+  const hist=S.mockHistory||[];
+  return hist.some(h=>h.date&&h.date.slice(0,7)===thisMonth());
+}
+
+// ── LAST SCORE ──
+function lastScore(key){
+  const hist=(S.mockHistory||[]).filter(h=>h.key===key);
+  if(!hist.length)return null;
+  return hist[hist.length-1];
+}
+
+// ── RENDER SELECT ──
+function renderSelect(){
+  const done=doneThisMonth();
+  let html=`<div class="monthly-banner ${done?'done':'pending'} fu d2">
+    <div class="mb-title">${done?'本月模擬考已完成！':'本月模擬考尚未完成'}</div>
+    <div class="mb-sub">${done?'繼續保持，下個月記得再來一次。':'完成任意一科模擬考即達成，可獲得雙倍 XP！'}</div>
+  </div>`;
+
+  html+=`<div class="sec-h fu d2">選擇考試</div>`;
+  html+=`<div class="exam-grid fu d2">`;
+
+  // GEPT
+  const grLast=lastScore('gr');
+  html+=`<div class="exam-card gr" onclick="showIntro('gr')">
+    <div class="exam-icon">英檢</div>
+    <div class="exam-name">全民英檢初級</div>
+    <div class="exam-sub">聽力 30 題 + 閱讀 30 題</div>
+    <div class="exam-meta">
+      <div class="exam-meta-item">考試時間 <strong>約 55 分鐘</strong></div>
+      <div class="exam-meta-item">通過標準 <strong>總分 160 分</strong></div>
+    </div>
+    ${grLast?`<div class="last-score">上次：<span>${grLast.totalScore||'—'} 分</span></div>`:''}
+  </div>`;
+
+  // JLPT
+  const jpLast=lastScore('jp');
+  html+=`<div class="exam-card jp" onclick="showIntro('jp')">
+    <div class="exam-icon">日檢</div>
+    <div class="exam-name">日本語能力試験 N5</div>
+    <div class="exam-sub">言語知識・讀解 + 聽解</div>
+    <div class="exam-meta">
+      <div class="exam-meta-item">考試時間 <strong>90 分鐘</strong></div>
+      <div class="exam-meta-item">通過標準 <strong>總分 80 分</strong></div>
+    </div>
+    ${jpLast?`<div class="last-score">上次：<span>${jpLast.totalScore||'—'} 分</span></div>`:''}
+  </div>`;
+
+  html+=`</div>`;
+
+  // Kanmu
+  html+=`<div class="sec-h fu d3">關務三等特考（單科模擬）</div>`;
+  html+=`<div class="km-sub-list fu d3">`;
+  EXAMS.km.subs.forEach(s=>{
+    const last=lastScore(s.key);
+    html+=`<div class="km-sub-card" onclick="showIntro('${s.key}')">
+      <div class="km-sub-left">
+        <div class="km-sub-name">${s.label}</div>
+        <div class="km-sub-desc">${s.desc}</div>
+      </div>
+      <div class="km-sub-right">
+        <div class="km-sub-time">${s.time} 分鐘</div>
+        <div class="km-sub-type">${s.type==='mc'?'選擇題':s.type==='essay'?'申論題':'混合式'}</div>
+        ${last?`<div style="font-size:10px;color:var(--c-km);font-family:var(--font-d);font-weight:700;margin-top:3px;">上次 ${last.pct||'—'}%</div>`:''}
+      </div>
+    </div>`;
+  });
+  html+=`</div>`;
+  document.getElementById('main').innerHTML=html;
+}
+
+// ── SHOW INTRO ──
+function showIntro(key){
+  curExam=key;
+  const ex=EXAMS[key]||EXAMS.km.subs.find(s=>s.key===key);
+  const isKmSub=key.startsWith('km-');
+  const label=isKmSub?EXAMS.km.subs.find(s=>s.key===key).label:ex.label;
+  const mins=isKmSub?EXAMS.km.subs.find(s=>s.key===key).time:ex.totalMins;
+  const specs=isKmSub?[]:ex.specs;
+  const cls=isKmSub?'km':key;
+
+  let html=`<button class="back-btn fu d1" onclick="renderSelect()" style="margin-bottom:16px;">← 返回選擇</button>
+  <div class="intro-panel fu d2">
+    <div class="intro-title">${label}</div>
+    <div class="intro-sub">以下為本次模擬考的規格，計時開始後顯示用時但不強制交卷，完成後可查看詳細分析。</div>
+    <div class="intro-specs">`;
+
+  if(specs.length){
+    specs.forEach(s=>{
+      html+=`<div class="spec-row"><div class="spec-dot" style="background:var(--c-${cls})"></div><span class="spec-text"><strong>${s.label}：</strong>${s.val}</span></div>`;
+    });
+  } else {
+    html+=`<div class="spec-row"><div class="spec-dot" style="background:var(--c-km)"></div><span class="spec-text"><strong>考試時間：</strong>${mins} 分鐘（顯示用時，不強制交卷）</span></div>`;
+    if(key==='km-law') html+=`<div class="spec-row"><div class="spec-dot" style="background:var(--c-km)"></div><span class="spec-text"><strong>題型：</strong>單一選擇題 50 題，每題 2 分，滿分 100 分</span></div>`;
+    else if(key==='km-chinese') html+=`<div class="spec-row"><div class="spec-dot" style="background:var(--c-km)"></div><span class="spec-text"><strong>題型：</strong>作文 2 題（各 40 分）+ 測驗 10 題（共 20 分）</span></div>`;
+    else html+=`<div class="spec-row"><div class="spec-dot" style="background:var(--c-km)"></div><span class="spec-text"><strong>題型：</strong>申論題 3 題，各 25 分，參考答案供對照</span></div>`;
+  }
+
+  html+=`</div>
+    <button class="start-exam-btn ${cls}" onclick="startExam('${key}')">開始模擬考試</button>
+  </div>`;
+
+  // history comparison
+  const hist=(S.mockHistory||[]).filter(h=>h.key===key).slice(-5);
+  if(hist.length){
+    html+=`<div class="compare-panel fu d3">
+      <div class="compare-head">歷次成績比較</div>`;
+    const max=Math.max(...hist.map(h=>h.pct||0),100);
+    hist.forEach(h=>{
+      const pct=h.pct||0;
+      const color=pct>=80?'var(--ok)':pct>=60?'var(--warn)':'var(--ng)';
+      html+=`<div class="compare-row">
+        <div class="compare-date">${h.date?h.date.slice(5):''}</div>
+        <div class="compare-bar-wrap"><div class="compare-bar" style="width:0%;background:${color}" data-pct="${pct}"></div></div>
+        <div class="compare-score" style="color:${color}">${pct}%</div>
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+
+  document.getElementById('main').innerHTML=html;
+  setTimeout(()=>{
+    document.querySelectorAll('.compare-bar[data-pct]').forEach(el=>{
+      el.style.width=el.dataset.pct+'%';
+    });
+  },150);
+}
+
+// ── BUILD QUESTIONS ──
+function buildQuestions(key){
+  const qs=[];
+  if(key==='gr'){
+    GEPT_LISTEN.forEach((q,i)=>qs.push({...randOpt(q),section:'聽力測驗',sectionMeta:'30 題',idx:i}));
+    GEPT_READ.forEach((q,i)=>qs.push({...randOpt(q),section:'閱讀測驗',sectionMeta:'30 題',idx:i}));
+  } else if(key==='jp'){
+    JP_LANG.forEach((q,i)=>qs.push({...randOpt(q),section:'言語知識・讀解',sectionMeta:'60 分鐘',idx:i}));
+    JP_LISTEN.forEach((q,i)=>qs.push({...q,section:'聽解',sectionMeta:'約 30 分鐘',idx:i}));
+  } else if(key==='km-law'){
+    KM_LAW_MC.forEach((q,i)=>qs.push({...randOpt(q),section:'法學知識',sectionMeta:'50 題選擇題',idx:i}));
+  } else if(key==='km-admin'){
+    KM_ADMIN_ESSAY.forEach((q,i)=>qs.push({...q,section:'行政法申論',sectionMeta:'3 題，各 25 分',idx:i}));
+  } else if(key==='km-finance'){
+    KM_FINANCE_ESSAY.forEach((q,i)=>qs.push({...q,section:'財政學申論',sectionMeta:'3 題，各 25 分',idx:i}));
+  } else if(key==='km-trade'){
+    KM_TRADE_ESSAY.forEach((q,i)=>qs.push({...q,section:'國際貿易實務申論',sectionMeta:'3 題，各 25 分',idx:i}));
+  } else if(key==='km-chinese'){
+    KM_CHINESE_ESSAY.forEach((q,i)=>qs.push({...q,section:'國文作文',sectionMeta:'2 題，各 40 分',idx:i}));
+    KM_CHINESE_MC.forEach((q,i)=>qs.push({...randOpt(q),section:'國文測驗',sectionMeta:'10 題，共 20 分',idx:i}));
+  }
+  return qs;
+}
+
+function randOpt(q){
+  if(q.type==='申論題'||q.type==='作文')return q;
+  const correct=q.opts[q.ans];
+  const s=[...q.opts].sort(()=>Math.random()-.5);
+  return{...q,opts:s,ans:s.indexOf(correct)};
+}
+
+// ── START EXAM ──
+function startExam(key){
+  curExam=key;
+  examQuestions=buildQuestions(key);
+  examAnswers=new Array(examQuestions.length).fill(null);
+  elapsedSecs=0;
+  renderExam();
+  startTimer();
+}
+
+function startTimer(){
+  if(timerInterval)clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{
+    elapsedSecs++;
+    const el=document.getElementById('timer-display');
+    if(el){
+      const m=Math.floor(elapsedSecs/60),s=elapsedSecs%60;
+      el.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      const ex=EXAMS[curExam]||EXAMS.km.subs.find(x=>x.key===curExam);
+      const warn=elapsedSecs>(ex?(ex.totalMins||ex.time||120):120)*60*0.85;
+      el.classList.toggle('warn',warn);
+      const icon=document.getElementById('timer-icon');
+      if(icon)icon.classList.toggle('warn',warn);
+    }
+  },1000);
+}
+
+function renderExam(){
+  const ex=EXAMS[curExam]||EXAMS.km.subs.find(s=>s.key===curExam);
+  const label=curExam.startsWith('km-')?EXAMS.km.subs.find(s=>s.key===curExam).label:(ex?ex.label:curExam);
+  const cls=curExam.startsWith('km-')?'km':curExam;
+
+  let html=`<div class="exam-topbar">
+    <div class="exam-subj-tag" style="color:var(--c-${cls})">${label}</div>
+    <div class="timer-wrap">
+      <div class="timer-icon" id="timer-icon"></div>
+      <div class="timer-display" id="timer-display">00:00</div>
+    </div>
+    <button class="submit-btn" onclick="confirmSubmit()">交卷</button>
+  </div>`;
+
+  let lastSection='';
+  examQuestions.forEach((q,i)=>{
+    if(q.section!==lastSection){
+      html+=`<div class="section-divider"><span class="section-divider-name">${q.section}</span><span class="section-divider-meta">${q.sectionMeta}</span></div>`;
+      lastSection=q.section;
+    }
+    if(q.type==='申論題'||q.type==='作文'){
+      html+=`<div class="essay-exam-card">
+        <div class="essay-exam-badge">申論題 / 作文</div>
+        <div class="essay-exam-q">${q.q.replace(/\n/g,'<br>')}</div>
+        <div class="essay-exam-note">請在紙上作答，完成後點交卷查看參考答案與評分重點。</div>
+      </div>`;
+    } else {
+      const isAudio=!!(q.audio);
+      const audioLang=(q.section&&q.section.includes('聽解'))?'jp':'en';
+      html+=`<div class="q-card" id="qcard-${i}">
+        <div class="q-num">第 ${i+1} 題 · ${q.type}</div>`;
+      if(isAudio){
+        const bgCol=audioLang==='jp'?'var(--c-jp)':'var(--c-gr)';
+        const borderCol=audioLang==='jp'?'var(--c-jp-bd)':'var(--c-gr-bd)';
+        html+=`<div class="audio-box" style="border-color:${borderCol}">
+          <button class="play-btn" style="background:${bgCol}" onclick="playAudio(${i})">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          </button>
+          <div>
+            <div class="audio-label" style="color:${bgCol}">播放題目</div>
+            <div class="audio-text" id="audio-${i}">${q.audio}</div>
+          </div>
+        </div>`;
+      }
+      const qText=q.tc||q.q;
+      html+=`<div class="q-text">${qText}</div>`;
+      if(q.passage) html+=`<div class="q-passage">${q.passage}</div>`;
+      html+=`</div>
+        <div class="options">`;
+      (q.opts||[]).forEach((o,j)=>{
+        html+=`<button class="opt" id="opt-${i}-${j}" onclick="selectOpt(${i},${j})">
+          <span class="opt-label">${ABCD[j]}</span>
+          <span class="opt-text">${o}</span>
+        </button>`;
+      });
+      html+=`</div>`;
+    }
+  });
+
+  html+=`<div style="margin-top:20px;"><button class="start-exam-btn km" onclick="confirmSubmit()" style="width:100%;">交卷並查看結果</button></div>`;
+  document.getElementById('main').innerHTML=html;
+
+  // auto play first audio
+  if(examQuestions[0]&&examQuestions[0].audio){
+    setTimeout(()=>playAudio(0),600);
+  }
+}
+
+function playAudio(i){
+  const el=document.getElementById('audio-${i}');
+  const q=examQuestions[i];
+  if(!q||!q.audio)return;
+  window.speechSynthesis&&window.speechSynthesis.cancel();
+  const isJp=q.section&&q.section.includes('聽解');
+  const u=new SpeechSynthesisUtterance(q.audio);
+  u.lang=isJp?'ja-JP':'en-US';
+  u.rate=isJp?0.8:0.9;
+  window.speechSynthesis&&window.speechSynthesis.speak(u);
+}
+
+function selectOpt(qi,oi){
+  const q=examQuestions[qi];
+  if(!q||q.type==='申論題'||q.type==='作文')return;
+  const prev=examAnswers[qi];
+  if(prev!==null){
+    const prevBtn=document.getElementById(`opt-${qi}-${prev}`);
+    if(prevBtn)prevBtn.classList.remove('selected');
+  }
+  examAnswers[qi]=oi;
+  const btn=document.getElementById(`opt-${qi}-${oi}`);
+  if(btn)btn.classList.add('selected');
+}
+
+function confirmSubmit(){
+  const mcQs=examQuestions.filter(q=>q.type!=='申論題'&&q.type!=='作文');
+  const unanswered=mcQs.filter((_,i)=>{
+    const realIdx=examQuestions.indexOf(mcQs.find(q=>q===mcQs[i]));
+    return examAnswers[realIdx]===null;
+  }).length;
+
+  if(unanswered>0){
+    if(!confirm(`還有 ${unanswered} 題選擇題未作答，確定要交卷嗎？`))return;
+  }
+  submitExam();
+}
+
+function submitExam(){
+  if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
+  window.speechSynthesis&&window.speechSynthesis.cancel();
+  renderResult();
+}
+
+// ── RESULT ──
+function renderResult(){
+  const key=curExam;
+  const qs=examQuestions;
+  const ans=examAnswers;
+  const cls=key.startsWith('km-')?'km':key;
+  const label=key.startsWith('km-')?EXAMS.km.subs.find(s=>s.key===key).label:(EXAMS[key]?EXAMS[key].label:key);
+
+  // calc scores
+  const mcQs=qs.filter(q=>q.type!=='申論題'&&q.type!=='作文');
+  let correct=0;
+  const wrongItems=[];
+  mcQs.forEach(q=>{
+    const qi=qs.indexOf(q);
+    const userAns=ans[qi];
+    if(userAns===q.ans)correct++;
+    else if(userAns!==null)wrongItems.push({q:q.tc||q.q,correct:ABCD[q.ans]+'. '+q.opts[q.ans],yours:userAns!==null?ABCD[userAns]+'. '+q.opts[userAns]:'未作答'});
+  });
+
+  const essayQs=qs.filter(q=>q.type==='申論題'||q.type==='作文');
+  const hasMC=mcQs.length>0;
+  const hasEssay=essayQs.length>0;
+
+  // compute pct and result
+  let totalScore=0, passResult='ref', resultMsg='', scoreItems=[];
+  const pct=hasMC?Math.round(correct/mcQs.length*100):null;
+
+  if(key==='gr'){
+    const listenQ=qs.filter(q=>q.section==='聽力測驗');
+    const readQ=qs.filter(q=>q.section==='閱讀測驗');
+    let lc=0,rc=0;
+    listenQ.forEach(q=>{const qi=qs.indexOf(q);if(ans[qi]===q.ans)lc++;});
+    readQ.forEach(q=>{const qi=qs.indexOf(q);if(ans[qi]===q.ans)rc++;});
+    const lScore=Math.round(lc/listenQ.length*120);
+    const rScore=Math.round(rc/readQ.length*120);
+    totalScore=lScore+rScore;
+    const pass=totalScore>=160&&lScore>=72&&rScore>=72;
+    passResult=pass?'pass':'fail';
+    scoreItems=[{label:'聽力',val:lScore,max:120,pass:lScore>=72},{label:'閱讀',val:rScore,max:120,pass:rScore>=72},{label:'總分',val:totalScore,max:240,pass:totalScore>=160}];
+    resultMsg=pass?`總分 ${totalScore}，聽力 ${lScore}，閱讀 ${rScore}，全部達標！`:`總分 ${totalScore}，通過標準為 160 分且單項不低於 72 分。`;
+  } else if(key==='jp'){
+    const langQ=qs.filter(q=>q.section==='言語知識・讀解');
+    const lisQ=qs.filter(q=>q.section==='聽解');
+    let lc=0,lc2=0;
+    langQ.forEach(q=>{const qi=qs.indexOf(q);if(ans[qi]===q.ans)lc++;});
+    lisQ.forEach(q=>{const qi=qs.indexOf(q);if(ans[qi]===q.ans)lc2++;});
+    const langScore=Math.round(lc/langQ.length*120);
+    const lisScore=Math.round(lc2/lisQ.length*60);
+    totalScore=langScore+lisScore;
+    const pass=totalScore>=80&&langScore>=38&&lisScore>=19;
+    passResult=pass?'pass':'fail';
+    scoreItems=[{label:'言語知識・讀解',val:langScore,max:120,pass:langScore>=38},{label:'聽解',val:lisScore,max:60,pass:lisScore>=19},{label:'總分',val:totalScore,max:180,pass:totalScore>=80}];
+    resultMsg=pass?`合計 ${totalScore} 分，全部達通過標準！`:`總分 ${totalScore}，通過標準：總分 80 分，言語知識・讀解 38 分，聽解 19 分。`;
+  } else if(key==='km-law'){
+    totalScore=correct*2;
+    const pctLaw=Math.round(totalScore);
+    scoreItems=[{label:'答對題數',val:correct,max:mcQs.length},{label:'得分',val:totalScore,max:100},{label:'正確率',val:pct+'%'}];
+    resultMsg=`答對 ${correct}/${mcQs.length} 題，得分 ${totalScore} 分（以排名決定錄取，無固定通過分數）。`;
+    passResult='ref';
+  } else if(key==='km-chinese'){
+    const mcScore=correct*2;
+    scoreItems=[{label:'測驗得分',val:mcScore,max:20},{label:'測驗正確率',val:pct+'%'},{label:'作文',val:'請對照參考答案'}];
+    resultMsg=`測驗部分得 ${mcScore} 分。作文共 2 題各 40 分，請對照參考答案評估自己的答題水準。`;
+    passResult='ref';totalScore=mcScore;
+  } else {
+    passResult='ref';
+    resultMsg='申論題已完成，請對照下方參考答案評估作答水準。成績以當次考生排名決定錄取。';
+    scoreItems=[{label:'申論題',val:hasEssay?essayQs.length+'題':'—'},{label:'考試用時',val:fmtSecs(elapsedSecs)}];
+  }
+
+  // save history
+  if(!S.mockHistory)S.mockHistory=[];
+  S.mockHistory.push({
+    key,date:new Date().toISOString().slice(0,10),
+    totalScore,pct:pct||Math.round(correct/(mcQs.length||1)*100),
+    correct,total:mcQs.length,
+    elapsedSecs,
+  });
+  sv();
+
+  // XP
+  const isMonthly=doneThisMonth();
+  const baseXp=60;
+  const xpMult=isMonthly?1:2;
+  const xpEarned=Math.round(baseXp*(pct||70)/100)*xpMult;
+  S.xp=(S.xp||0)+xpEarned; sv();
+  document.getElementById('xpv').textContent=S.xp.toLocaleString();
+
+  const passLabel={pass:'通過',fail:'未通過',ref:'完成'}[passResult];
+  const passCls={pass:'pass',fail:'fail',ref:'ref'}[passResult];
+
+  let html=`<div class="result-header fu d1">
+    <div class="result-exam-name">${label} · 用時 ${fmtSecs(elapsedSecs)}</div>
+    <div class="pass-badge ${passCls}">${passLabel}</div>
+    <div class="score-grid">`;
+  scoreItems.forEach(s=>{
+    const vc=typeof s.pass!=='undefined'?(s.pass?'pass':'fail'):'';
+    html+=`<div class="score-cell"><div class="score-val ${vc}">${s.val}${s.max?'':''}</div><div class="score-label">${s.label}${s.max?` / ${s.max}`:''}</div></div>`;
+  });
+  html+=`</div>
+    <div class="result-msg">${resultMsg}</div>
+    <div class="xp-earned">+${xpEarned} XP${xpMult===2?' （本月首次，雙倍！）':''}</div>
+  </div>`;
+
+  // wrong items (MC)
+  if(wrongItems.length){
+    html+=`<div class="wrong-panel fu d2">
+      <div class="wrong-head">選擇題錯題（${wrongItems.length} 題）</div>`;
+    wrongItems.forEach(w=>{
+      html+=`<div class="wrong-item">
+        <div class="wrong-q">${w.q}</div>
+        <div class="wrong-detail">
+          <span>正確：<span class="correct">${w.correct}</span></span>
+          <span>你的答案：<span class="yours">${w.yours}</span></span>
+        </div>
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+
+  // essay reference answers
+  if(hasEssay){
+    html+=`<div class="wrong-panel fu d3">
+      <div class="wrong-head">申論題 / 作文參考答案</div>`;
+    essayQs.forEach((q,i)=>{
+      html+=`<div class="wrong-item">
+        <div class="wrong-q" style="margin-bottom:8px;">${q.q.replace(/\n/g,'<br>')}</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text3);font-family:var(--font-d);margin-bottom:5px;">評分重點</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.65;background:var(--bg);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:8px;">${(q.points||'').replace(/\n/g,'<br>')}</div>
+        <div style="font-size:11px;font-weight:700;color:var(--ok);font-family:var(--font-d);margin-bottom:5px;">參考答案</div>
+        <div style="font-size:12px;color:var(--text);line-height:1.7;background:var(--ok-bg);border:1px solid var(--ok-bd);border-radius:var(--radius-sm);padding:10px 12px;">${(q.ref||'').replace(/\n/g,'<br>')}</div>
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+
+  html+=`<div class="result-btns fu d4">
+    <button class="rb-again" onclick="showIntro('${key}')">再考一次</button>
+    <button class="rb-home" onclick="renderSelect()">返回選擇</button>
+  </div>`;
+
+  document.getElementById('main').innerHTML=html;
+  burstCoins();
+}
+
+function fmtSecs(s){const m=Math.floor(s/60),ss=s%60;return`${m}分${String(ss).padStart(2,'0')}秒`;}
+
+// COINS
+function burstCoins(){for(let i=0;i<14;i++)setTimeout(()=>coin(Math.random()*window.innerWidth,window.innerHeight*.4+Math.random()*80),i*55);}
+function coin(x,y){const c=document.createElement('div');c.className='coin-el';c.style.left=(x+(Math.random()-.5)*22)+'px';c.style.top=y+'px';document.getElementById('cl').appendChild(c);setTimeout(()=>c.remove(),1000);}
+
+let tt;
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2400);}
+
+// INIT
+document.getElementById('xpv').textContent=(S.xp||0).toLocaleString();
+renderSelect();
+</script>
+</body>
+</html>

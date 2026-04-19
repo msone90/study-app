@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>備考任務板</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f7f6f2; --bg2:#ffffff; --bg3:#eeece6;
+  --text:#1e1c18; --text2:#6b6860; --text3:#a8a59e;
+  --border:rgba(0,0,0,0.08); --border2:rgba(0,0,0,0.14);
+  --radius:14px; --radius-sm:8px;
+  --shadow:0 2px 10px rgba(0,0,0,0.06);
+  --sidebar-w:220px;
+  --c-km:#5a4fcf; --c-km-bg:#f2f1fd; --c-km-bd:#cac7f5;
+  --c-xp:#d4a017;
+  --ok:#16a34a;
+  --font-d:'Nunito','Noto Sans TC',sans-serif;
+  --font-b:'Noto Sans TC',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;background:var(--bg);}
+body{font-family:var(--font-b);color:var(--text);display:flex;overflow:hidden;}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;
+  background:var(--bg2);
+  border-right:1.5px solid var(--border);
+  display:flex;flex-direction:column;
+  height:100vh;
+  position:fixed;left:0;top:0;z-index:100;
+  transition:transform .25s cubic-bezier(.4,0,.2,1);
+}
+.sidebar-logo{
+  padding:22px 20px 16px;
+  border-bottom:1px solid var(--border);
+}
+.logo-name{font-family:var(--font-d);font-size:16px;font-weight:900;color:var(--text);letter-spacing:-.3px;}
+.logo-sub{font-size:11px;color:var(--text3);margin-top:2px;}
+
+.sidebar-xp{
+  margin:12px 14px;
+  background:var(--bg);
+  border:1.5px solid var(--border);
+  border-radius:var(--radius-sm);
+  padding:10px 12px;
+  cursor:pointer;
+  transition:background .15s;
+}
+.sidebar-xp:hover{background:var(--bg3);}
+.xp-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
+.xp-label{font-size:10px;color:var(--text3);font-family:var(--font-d);font-weight:700;letter-spacing:.3px;}
+.xp-val{font-family:var(--font-d);font-size:14px;font-weight:900;color:var(--c-xp);}
+.xp-lv{font-family:var(--font-d);font-size:10px;font-weight:700;color:var(--text2);}
+.xp-track{height:4px;background:var(--bg3);border-radius:10px;overflow:hidden;}
+.xp-fill{height:100%;background:linear-gradient(90deg,var(--c-km),#9b8fff);border-radius:10px;transition:width .6s;}
+
+.nav-section{padding:8px 10px 4px;font-size:10px;font-weight:800;color:var(--text3);font-family:var(--font-d);letter-spacing:.8px;text-transform:uppercase;}
+.nav-list{padding:0 10px;flex:1;overflow-y:auto;}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 10px;
+  border-radius:var(--radius-sm);
+  cursor:pointer;
+  font-size:13px;font-weight:700;
+  color:var(--text2);
+  transition:background .15s,color .15s;
+  margin-bottom:2px;
+  border:none;background:none;width:100%;text-align:left;
+  font-family:var(--font-b);
+}
+.nav-item:hover{background:var(--bg3);color:var(--text);}
+.nav-item.active{background:var(--c-km-bg);color:var(--c-km);}
+.nav-icon{width:18px;height:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.nav-icon svg{width:16px;height:16px;}
+.nav-badge{margin-left:auto;background:var(--c-km);color:white;border-radius:20px;padding:1px 7px;font-size:10px;font-family:var(--font-d);font-weight:700;}
+
+.sidebar-bottom{padding:12px 10px;border-top:1px solid var(--border);}
+.streak-pill{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);}
+.streak-fire{width:16px;height:16px;background:#e05252;border-radius:50%;}
+.streak-text{font-size:12px;font-weight:700;font-family:var(--font-d);color:var(--text2);}
+.streak-num{color:#e05252;}
+
+/* ── TOPBAR (mobile) ── */
+.topbar-mobile{
+  display:none;
+  position:fixed;top:0;left:0;right:0;z-index:99;
+  background:var(--bg2);
+  border-bottom:1.5px solid var(--border);
+  padding:12px 16px;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.hamburger{
+  background:none;border:none;cursor:pointer;
+  display:flex;flex-direction:column;gap:4px;padding:4px;
+}
+.hamburger span{display:block;width:20px;height:2px;background:var(--text2);border-radius:2px;transition:all .2s;}
+.mobile-page-title{font-family:var(--font-d);font-size:15px;font-weight:800;color:var(--text);}
+.mobile-xp{font-family:var(--font-d);font-size:13px;font-weight:800;color:var(--c-xp);}
+
+/* ── OVERLAY (mobile sidebar) ── */
+.overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:99;
+  backdrop-filter:blur(2px);
+}
+.overlay.show{display:block;}
+
+/* ── MAIN CONTENT ── */
+.main-wrap{
+  margin-left:var(--sidebar-w);
+  flex:1;height:100vh;overflow:hidden;
+  display:flex;flex-direction:column;
+}
+.content-area{flex:1;overflow:hidden;position:relative;}
+.page-frame{
+  position:absolute;inset:0;
+  border:none;width:100%;height:100%;
+  display:none;
+}
+.page-frame.active{display:block;}
+
+/* ── SETTINGS PANEL ── */
+.settings-page{
+  position:absolute;inset:0;overflow-y:auto;
+  padding:32px 28px 64px;
+  display:none;background:var(--bg);
+}
+.settings-page.active{display:block;}
+.settings-title{font-family:var(--font-d);font-size:20px;font-weight:900;margin-bottom:28px;}
+.settings-section{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px 22px;margin-bottom:16px;box-shadow:var(--shadow);}
+.settings-sec-title{font-family:var(--font-d);font-size:14px;font-weight:800;margin-bottom:4px;}
+.settings-sec-sub{font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.5;}
+.settings-label{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:5px;font-family:var(--font-d);}
+.settings-input{width:100%;padding:10px 13px;border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-size:14px;font-family:var(--font-b);color:var(--text);background:var(--bg);outline:none;transition:border-color .15s;margin-bottom:12px;}
+.settings-input:focus{border-color:var(--c-km);}
+.settings-btn{padding:10px 20px;background:var(--c-km);color:white;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;font-family:var(--font-d);cursor:pointer;transition:opacity .15s;}
+.settings-btn:hover{opacity:.9;}
+.settings-btn.danger{background:#dc2626;}
+.settings-btn.secondary{background:var(--bg3);color:var(--text2);}
+.api-status{display:flex;align-items:center;gap:6px;font-size:12px;margin-top:8px;}
+.api-dot{width:8px;height:8px;border-radius:50%;}
+.api-dot.ok{background:var(--ok);}
+.api-dot.missing{background:#e05252;}
+
+.exam-date-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media(max-width:500px){.exam-date-grid{grid-template-columns:1fr;}}
+.exam-date-card{background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;}
+.edc-name{font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px;}
+.edc-input{width:100%;padding:8px 10px;border:1.5px solid var(--border2);border-radius:6px;font-size:13px;font-family:var(--font-b);color:var(--text);background:var(--bg2);outline:none;transition:border-color .15s;}
+.edc-input:focus{border-color:var(--c-km);}
+.edc-days{font-size:10px;color:var(--text3);margin-top:4px;font-family:var(--font-d);}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(12px);background:var(--text);color:white;border-radius:24px;padding:10px 22px;font-size:13px;font-family:var(--font-d);font-weight:700;opacity:0;transition:all .28s;z-index:500;white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);box-shadow:var(--shadow);}
+  .main-wrap{margin-left:0;}
+  .topbar-mobile{display:flex;}
+  .content-area{padding-top:53px;}
+}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<!-- ── SIDEBAR ── -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-name">備考任務板</div>
+    <div class="logo-sub">持續追蹤每一個考試進度</div>
+  </div>
+
+  <div class="sidebar-xp" onclick="goPage('dashboard')">
+    <div class="xp-row">
+      <span class="xp-label">經驗值</span>
+      <span class="xp-val" id="sb-xp">0 XP</span>
+    </div>
+    <div class="xp-row" style="margin-bottom:0;">
+      <span class="xp-lv" id="sb-lv">Lv.1 初心者</span>
+      <span class="xp-lv" id="sb-xp-next"></span>
+    </div>
+    <div style="margin-top:6px;" class="xp-track"><div class="xp-fill" id="sb-xp-bar" style="width:0%"></div></div>
+  </div>
+
+  <div class="nav-list">
+    <div class="nav-section">主選單</div>
+
+    <button class="nav-item active" id="nav-dashboard" onclick="goPage('dashboard')">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+      備考儀表板
+    </button>
+
+    <button class="nav-item" id="nav-quiz" onclick="goPage('quiz')">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></span>
+      每日測驗
+    </button>
+
+    <button class="nav-item" id="nav-mock" onclick="goPage('mock')">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+      模擬考試
+    </button>
+
+    <div class="nav-section" style="margin-top:8px;">分析</div>
+
+    <button class="nav-item" id="nav-weakness" onclick="goPage('weakness')">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+      弱點分析
+    </button>
+
+    <button class="nav-item" id="nav-history" onclick="goPage('history')">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+      歷史紀錄
+    </button>
+
+    <div class="nav-section" style="margin-top:8px;">資源</div>
+
+    <button class="nav-item" id="nav-materials" onclick="goPage('materials')">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></span>
+      教材瀏覽
+      <span class="nav-badge">即將推出</span>
+    </button>
+
+    <button class="nav-item" id="nav-settings" onclick="goPage('settings')">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>
+      設定
+    </button>
+  </div>
+
+  <div class="sidebar-bottom">
+    <div class="streak-pill">
+      <div class="streak-fire"></div>
+      <span class="streak-text">連續 <span class="streak-num" id="sb-streak">0</span> 天學習</span>
+    </div>
+  </div>
+</nav>
+
+<!-- ── MOBILE TOPBAR ── -->
+<div class="topbar-mobile">
+  <button class="hamburger" onclick="toggleSidebar()">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="mobile-page-title" id="mobile-title">備考儀表板</div>
+  <div class="mobile-xp" id="mobile-xp">0 XP</div>
+</div>
+
+<!-- ── MAIN CONTENT ── -->
+<div class="main-wrap">
+  <div class="content-area">
+
+    <!-- Page frames -->
+    <iframe class="page-frame active" id="frame-dashboard" src="dashboard.html" title="備考儀表板"></iframe>
+    <iframe class="page-frame" id="frame-quiz" src="" data-src="quiz.html" title="每日測驗"></iframe>
+    <iframe class="page-frame" id="frame-mock" src="" data-src="mock.html" title="模擬考試"></iframe>
+    <iframe class="page-frame" id="frame-weakness" src="" data-src="weakness.html" title="弱點分析"></iframe>
+    <iframe class="page-frame" id="frame-history" src="" data-src="history.html" title="歷史紀錄"></iframe>
+
+    <!-- Settings (built-in, no iframe) -->
+    <div class="settings-page" id="frame-settings">
+      <div style="max-width:640px;margin:0 auto;">
+        <div class="settings-title">設定</div>
+
+        <!-- API KEY -->
+        <div class="settings-section">
+          <div class="settings-sec-title">Anthropic API Key</div>
+          <div class="settings-sec-sub">輸入你的 API Key 後，教材瀏覽的 AI 出題和作文批改功能將會啟用。Key 僅儲存在你的瀏覽器本機，不會上傳到任何伺服器。</div>
+          <div class="settings-label">API Key</div>
+          <input class="settings-input" id="api-input" type="password" placeholder="sk-ant-api03-xxxxxxxx...">
+          <div class="api-status" id="api-status">
+            <div class="api-dot missing" id="api-dot"></div>
+            <span id="api-status-text">尚未設定</span>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:14px;">
+            <button class="settings-btn" onclick="saveApiKey()">儲存 Key</button>
+            <button class="settings-btn secondary" onclick="clearApiKey()">清除</button>
+            <a href="https://console.anthropic.com" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:10px 14px;background:var(--bg3);color:var(--text2);border-radius:var(--radius-sm);font-size:12px;font-weight:700;font-family:var(--font-d);text-decoration:none;">申請 Key ↗</a>
+          </div>
+        </div>
+
+        <!-- EXAM DATES -->
+        <div class="settings-section">
+          <div class="settings-sec-title">考試日期管理</div>
+          <div class="settings-sec-sub">修改後儀表板倒數會立即更新。</div>
+          <div class="exam-date-grid" id="exam-date-grid"></div>
+          <button class="settings-btn" style="margin-top:14px;" onclick="saveExamDates()">儲存日期</button>
+        </div>
+
+        <!-- RESET -->
+        <div class="settings-section">
+          <div class="settings-sec-title">重置資料</div>
+          <div class="settings-sec-sub">清除所有學習紀錄、XP、答題歷史。此操作無法復原。</div>
+          <button class="settings-btn danger" onclick="confirmReset()">清除所有資料</button>
+        </div>
+
+        <!-- ABOUT -->
+        <div class="settings-section">
+          <div class="settings-sec-title">關於</div>
+          <div style="font-size:13px;color:var(--text2);line-height:1.7;">
+            <div>版本：1.0.0</div>
+            <div style="margin-top:4px;">考試目標：英檢初級、日檢 N4、關務三等財稅行政</div>
+            <div style="margin-top:4px;color:var(--text3);">所有資料儲存於本機瀏覽器，清除瀏覽器資料時會一併刪除。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Materials placeholder -->
+    <div class="settings-page" id="frame-materials">
+      <div style="max-width:640px;margin:0 auto;text-align:center;padding-top:80px;">
+        <div style="font-family:var(--font-d);font-size:32px;font-weight:900;color:var(--text3);margin-bottom:12px;">即將推出</div>
+        <div style="font-family:var(--font-d);font-size:16px;font-weight:800;color:var(--text);margin-bottom:8px;">教材瀏覽</div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.7;max-width:360px;margin:0 auto 24px;">
+          教材瀏覽功能正在建置中，你可以先準備好 PDF 或 epub 教材，等功能上線後上傳使用。<br><br>
+          設定好 API Key 後，AI 將能讀取你的教材自動出題。
+        </div>
+        <button class="settings-btn" onclick="goPage('settings')">前往設定 API Key</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+function defS(){return{xp:0,level:1,streak:0,lastDate:null,exams:{gr:{name:'英檢初級 聽讀',date:'2026-06-06'},gw:{name:'英檢初級 說寫',date:'2026-09-12'},jp:{name:'日檢 N4',date:'2026-12-06'},km:{name:'關務三等特考',date:'2027-04-01'}}};}
+let S=(()=>{try{return{...defS(),...JSON.parse(localStorage.getItem('lq3'))};}catch(e){return defS();}})();
+const sv=()=>localStorage.setItem('lq3',JSON.stringify(S));
+
+const LEVELS=[
+  {lv:1,name:'初心者',xp:0},{lv:2,name:'見習學者',xp:200},
+  {lv:3,name:'努力中的人',xp:500},{lv:4,name:'知識探索者',xp:1000},
+  {lv:5,name:'備考戰士',xp:2000},{lv:6,name:'學習冒險家',xp:3500},
+  {lv:7,name:'考試挑戰者',xp:5500},{lv:8,name:'知識獵人',xp:8000},
+  {lv:9,name:'精通學者',xp:12000},{lv:10,name:'傳說備考士',xp:18000},
+];
+function getLv(xp){let r=LEVELS[0];for(const l of LEVELS)if(xp>=l.xp)r=l;return r;}
+function getNextLv(xp){const cur=getLv(xp);const next=LEVELS.find(l=>l.lv===cur.lv+1);return next||cur;}
+
+// ── PAGE TITLES ──
+const PAGE_TITLES={
+  dashboard:'備考儀表板',quiz:'每日測驗',mock:'模擬考試',
+  weakness:'弱點分析',history:'歷史紀錄',
+  materials:'教材瀏覽',settings:'設定',
+};
+
+// ── CURRENT PAGE ──
+let curPage='dashboard';
+
+// ── NAVIGATE ──
+function goPage(page){
+  // deactivate old
+  document.getElementById('nav-'+curPage)?.classList.remove('active');
+  const oldFrame=document.getElementById('frame-'+curPage);
+  oldFrame?.classList.remove('active');
+
+  curPage=page;
+
+  // activate new
+  document.getElementById('nav-'+page)?.classList.add('active');
+  const frame=document.getElementById('frame-'+page);
+  if(frame){
+    frame.classList.add('active');
+    // lazy load iframe
+    if(frame.tagName==='IFRAME'&&!frame.src&&frame.dataset.src){
+      frame.src=frame.dataset.src;
+    }
+  }
+
+  // update mobile title
+  document.getElementById('mobile-title').textContent=PAGE_TITLES[page]||page;
+
+  // close sidebar on mobile
+  closeSidebar();
+
+  // refresh sidebar stats
+  refreshSidebar();
+}
+
+// ── SIDEBAR ──
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+// ── REFRESH SIDEBAR ── 
+function refreshSidebar(){
+  // re-read state (child iframes may have updated it)
+  try{S={...defS(),...JSON.parse(localStorage.getItem('lq3'))};}catch(e){}
+
+  const xp=S.xp||0;
+  const lvData=getLv(xp);
+  const nextLvData=getNextLv(xp);
+  const xpInLevel=xp-lvData.xp;
+  const xpNeeded=nextLvData.xp-lvData.xp;
+  const pct=xpNeeded>0?Math.round(xpInLevel/xpNeeded*100):100;
+
+  document.getElementById('sb-xp').textContent=xp.toLocaleString()+' XP';
+  document.getElementById('sb-lv').textContent=`Lv.${lvData.lv} ${lvData.name}`;
+  document.getElementById('sb-xp-next').textContent=nextLvData.lv>lvData.lv?`${xpInLevel}/${xpNeeded}`:'MAX';
+  document.getElementById('sb-xp-bar').style.width=pct+'%';
+  document.getElementById('sb-streak').textContent=S.streak||0;
+  document.getElementById('mobile-xp').textContent=xp.toLocaleString()+' XP';
+}
+
+// ── SETTINGS ──
+function loadApiStatus(){
+  const key=localStorage.getItem('lq_api_key');
+  const dot=document.getElementById('api-dot');
+  const txt=document.getElementById('api-status-text');
+  const inp=document.getElementById('api-input');
+  if(key){
+    dot.className='api-dot ok';
+    txt.textContent='已設定（'+key.slice(0,12)+'...）';
+    inp.placeholder='已設定，輸入新 Key 覆蓋';
+  } else {
+    dot.className='api-dot missing';
+    txt.textContent='尚未設定';
+  }
+}
+function saveApiKey(){
+  const val=document.getElementById('api-input').value.trim();
+  if(!val){showToast('請輸入 API Key');return;}
+  if(!val.startsWith('sk-ant-')){showToast('Key 格式不正確，應以 sk-ant- 開頭');return;}
+  localStorage.setItem('lq_api_key',val);
+  document.getElementById('api-input').value='';
+  loadApiStatus();
+  showToast('API Key 已儲存');
+}
+function clearApiKey(){
+  localStorage.removeItem('lq_api_key');
+  document.getElementById('api-input').value='';
+  loadApiStatus();
+  showToast('已清除 API Key');
+}
+
+// ── EXAM DATES ──
+const EXAM_KEYS=[
+  {key:'gr',label:'英檢初級 聽讀'},
+  {key:'gw',label:'英檢初級 說寫'},
+  {key:'jp',label:'日檢 N4'},
+  {key:'km',label:'關務三等特考'},
+];
+function renderExamDates(){
+  if(!S.exams)S.exams=defS().exams;
+  const grid=document.getElementById('exam-date-grid');
+  grid.innerHTML=EXAM_KEYS.map(e=>{
+    const ex=S.exams[e.key]||{};
+    const days=daysUntil(ex.date);
+    return`<div class="exam-date-card">
+      <div class="edc-name">${e.label}</div>
+      <input class="edc-input" id="edc-${e.key}" type="date" value="${ex.date||''}">
+      <div class="edc-days">${days!==null?`距今 ${days} 天`:'日期未設定'}</div>
+    </div>`;
+  }).join('');
+}
+function saveExamDates(){
+  if(!S.exams)S.exams={};
+  EXAM_KEYS.forEach(e=>{
+    const v=document.getElementById('edc-'+e.key)?.value;
+    if(!S.exams[e.key])S.exams[e.key]={name:e.label};
+    S.exams[e.key].date=v||null;
+  });
+  sv();
+  renderExamDates();
+  showToast('考試日期已儲存');
+  // refresh dashboard if loaded
+  const df=document.getElementById('frame-dashboard');
+  if(df&&df.contentWindow){try{df.contentWindow.location.reload();}catch(e){}}
+}
+function daysUntil(ds){
+  if(!ds)return null;
+  const n=new Date();n.setHours(0,0,0,0);
+  const t=new Date(ds);t.setHours(0,0,0,0);
+  return Math.ceil((t-n)/86400000);
+}
+
+// ── RESET ──
+function confirmReset(){
+  if(confirm('確定要清除所有學習資料嗎？此操作無法復原。')){
+    localStorage.removeItem('lq3');
+    S=defS();sv();
+    refreshSidebar();
+    showToast('已清除所有資料');
+    // reload dashboard
+    const df=document.getElementById('frame-dashboard');
+    if(df)df.src='dashboard.html';
+  }
+}
+
+// ── TOAST ──
+let tt;
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2400);}
+
+// ── LISTEN FOR STORAGE CHANGES (cross-iframe) ──
+window.addEventListener('storage',()=>refreshSidebar());
+// also poll every 3s to catch iframe updates
+setInterval(refreshSidebar,3000);
+
+// ── INIT ──
+loadApiStatus();
+renderExamDates();
+refreshSidebar();
+</script>
+</body>
+</html>

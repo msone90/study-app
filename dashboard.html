@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>備考儀表板</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #f7f6f2;
+  --bg2:      #ffffff;
+  --bg3:      #eeece6;
+  --text:     #1e1c18;
+  --text2:    #6b6860;
+  --text3:    #a8a59e;
+  --border:   rgba(0,0,0,0.08);
+  --border2:  rgba(0,0,0,0.14);
+  --radius:   16px;
+  --radius-sm:10px;
+  --shadow:   0 2px 10px rgba(0,0,0,0.06);
+  --shadow-md:0 4px 20px rgba(0,0,0,0.09);
+  --c-gept-r: #e05252; --c-gept-r-bg:#fdf2f2; --c-gept-r-bd:#f5c6c6;
+  --c-gept-w: #d4841a; --c-gept-w-bg:#fdf6ec; --c-gept-w-bd:#f5d9a8;
+  --c-jlpt:   #2a9d8f; --c-jlpt-bg: #edf7f6;  --c-jlpt-bd: #b2deda;
+  --c-kanmu:  #5a4fcf; --c-kanmu-bg:#f2f1fd;  --c-kanmu-bd:#cac7f5;
+  --c-sketch: #3a9e5f; --c-sketch-bg:#edf7f2; --c-sketch-bd:#b2ddc5;
+  --c-xp:     #d4a017;
+  --font-d: 'Nunito','Noto Sans TC',sans-serif;
+  --font-b: 'Noto Sans TC',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{background:var(--bg);}
+body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height:100vh;}
+.page{max-width:1100px;margin:0 auto;padding:32px 28px 64px;}
+@media(max-width:620px){.page{padding:20px 16px 48px;}}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
+.site-name{font-family:var(--font-d);font-size:22px;font-weight:900;letter-spacing:-0.5px;}
+.site-sub{font-size:12px;color:var(--text2);margin-top:2px;}
+.xp-chip{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1.5px solid var(--border2);border-radius:24px;padding:8px 16px;cursor:pointer;box-shadow:var(--shadow);transition:box-shadow .2s;}
+.xp-chip:hover{box-shadow:var(--shadow-md);}
+.xp-dot{width:18px;height:18px;border-radius:50%;background:var(--c-xp);}
+.xp-val{font-family:var(--font-d);font-size:15px;font-weight:800;color:var(--c-xp);}
+.xp-lbl{font-size:11px;color:var(--text3);}
+@media(max-width:480px){.xp-lbl{display:none;}.site-name{font-size:18px;}}
+
+/* STREAK */
+.streak-bar{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px 20px;display:flex;align-items:center;gap:16px;margin-bottom:24px;box-shadow:var(--shadow);}
+.s-pips{display:flex;gap:4px;}
+.s-pip{width:8px;height:8px;border-radius:50%;background:var(--bg3);}
+.s-pip.on{background:#e05252;}
+.s-info{flex:1;}
+.s-big{font-family:var(--font-d);font-size:14px;font-weight:800;}
+.s-small{font-size:11px;color:var(--text2);margin-top:1px;}
+.s-num{font-family:var(--font-d);font-size:30px;font-weight:900;color:var(--c-xp);line-height:1;}
+.s-lbl{font-size:10px;color:var(--text3);text-align:right;}
+
+/* ALERTS */
+.alert{border-radius:var(--radius);padding:14px 18px;margin-bottom:20px;display:none;border:1.5px solid;}
+.alert.show{display:block;}
+.alert.danger{background:#fff2f2;border-color:#fca5a5;}
+.alert.warn{background:#fffbeb;border-color:#fde68a;}
+.alert-title{font-family:var(--font-d);font-size:14px;font-weight:800;margin-bottom:3px;}
+.alert-body{font-size:12px;color:var(--text2);line-height:1.55;}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+@media(max-width:700px){.grid{grid-template-columns:1fr;}}
+.col{display:flex;flex-direction:column;gap:20px;}
+
+/* SEC HEAD */
+.sec-h{font-family:var(--font-d);font-size:11px;font-weight:800;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;}
+
+/* EXAM CARDS */
+.exam-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media(max-width:380px){.exam-grid{grid-template-columns:1fr;}}
+.ec{border-radius:var(--radius);padding:16px 14px;border:1.5px solid;box-shadow:var(--shadow);cursor:pointer;transition:transform .18s,box-shadow .18s;position:relative;}
+.ec:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+.ec.gr{background:var(--c-gept-r-bg);border-color:var(--c-gept-r-bd);}
+.ec.gw{background:var(--c-gept-w-bg);border-color:var(--c-gept-w-bd);}
+.ec.jp{background:var(--c-jlpt-bg);border-color:var(--c-jlpt-bd);}
+.ec.km{background:var(--c-kanmu-bg);border-color:var(--c-kanmu-bd);}
+.ec .edt{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.75);border:1px solid var(--border2);border-radius:6px;font-size:10px;color:var(--text2);cursor:pointer;padding:2px 7px;font-family:var(--font-b);transition:background .15s;}
+.ec .edt:hover{background:white;}
+.ec-name{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;}
+.ec-days{font-family:var(--font-d);font-size:40px;font-weight:900;line-height:1;margin-bottom:2px;}
+.ec.gr .ec-days{color:var(--c-gept-r);}
+.ec.gw .ec-days{color:var(--c-gept-w);}
+.ec.jp .ec-days{color:var(--c-jlpt);}
+.ec.km .ec-days{color:var(--c-kanmu);}
+.ec-lbl{font-size:10px;color:var(--text3);font-family:var(--font-d);font-weight:700;}
+.ec-date{font-size:10px;color:var(--text3);margin-top:6px;}
+@keyframes urgentPulse{0%,100%{opacity:1}50%{opacity:.5}}
+.urgent .ec-days{animation:urgentPulse 1.8s ease-in-out infinite;}
+
+/* AI BOX */
+.ai-box{background:var(--bg2);border:1.5px solid #bfdbfe;border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);}
+.ai-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.ai-dot{width:7px;height:7px;border-radius:50%;background:#3b82f6;}
+.ai-tag{font-size:11px;font-weight:800;color:#3b82f6;font-family:var(--font-d);letter-spacing:.4px;}
+.ai-text{font-size:13px;color:#1e3a5f;line-height:1.65;}
+
+/* TASKS */
+.tasks-wrap{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);}
+.task-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:opacity .2s;}
+.task-row:last-of-type{border-bottom:none;}
+.task-row:first-of-type{padding-top:0;}
+.task-row.done{opacity:.38;pointer-events:none;}
+.t-bar{width:4px;height:34px;border-radius:4px;flex-shrink:0;}
+.t-body{flex:1;}
+.t-name{font-size:13px;font-weight:700;}
+.t-meta{font-size:11px;color:var(--text3);margin-top:2px;}
+.t-xp{font-family:var(--font-d);font-size:11px;font-weight:800;color:var(--c-xp);background:#fef9ec;border-radius:8px;padding:2px 8px;flex-shrink:0;}
+.t-chk{width:22px;height:22px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;font-size:11px;color:white;}
+.t-chk.checked{background:#22c55e;border-color:#22c55e;}
+.go-btn{width:100%;margin-top:14px;padding:13px;background:var(--c-kanmu);color:white;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:var(--font-d);cursor:pointer;transition:opacity .15s,transform .12s;}
+.go-btn:hover{opacity:.9;}
+.go-btn:active{transform:scale(.98);}
+.go-btn.done-all{background:#22c55e;}
+
+/* PROGRESS */
+.prog-wrap{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);}
+.prog-item{margin-bottom:14px;}
+.prog-item:last-child{margin-bottom:0;}
+.prog-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+.prog-lbl{font-size:12px;font-weight:700;}
+.prog-pct{font-family:var(--font-d);font-size:12px;font-weight:800;}
+.prog-track{height:6px;background:var(--bg3);border-radius:10px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:10px;transition:width .9s cubic-bezier(.4,0,.2,1);width:0%;}
+.prog-sub{font-size:10px;color:var(--text3);margin-top:3px;}
+
+/* COIN */
+@keyframes cf{0%{opacity:0;transform:translateY(0) scale(.4)}20%{opacity:1;transform:translateY(-12px) scale(1.1)}80%{opacity:1;transform:translateY(-55px) scale(1)}100%{opacity:0;transform:translateY(-80px) scale(.4)}}
+.coin-el{position:fixed;pointer-events:none;z-index:999;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe066,#f9c846,#d4a017);border:1.5px solid #e5a800;animation:cf .9s ease-out forwards;}
+
+/* MODAL */
+.m-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.28);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(3px);}
+.m-overlay.open{display:flex;}
+.m-box{background:white;border-radius:20px;padding:28px;width:100%;max-width:360px;margin:0 16px;box-shadow:0 16px 48px rgba(0,0,0,.14);animation:popIn .25s cubic-bezier(.4,0,.2,1);}
+@keyframes popIn{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.m-title{font-family:var(--font-d);font-size:17px;font-weight:800;margin-bottom:4px;}
+.m-sub{font-size:12px;color:var(--text2);margin-bottom:20px;}
+.m-lbl{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:5px;}
+.m-in{width:100%;padding:10px 13px;border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-size:14px;font-family:var(--font-b);color:var(--text);background:var(--bg);outline:none;transition:border-color .15s;margin-bottom:14px;}
+.m-in:focus{border-color:var(--c-kanmu);}
+.m-btns{display:flex;gap:10px;margin-top:6px;}
+.m-cancel{flex:1;padding:11px;background:var(--bg3);border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;font-family:var(--font-d);cursor:pointer;color:var(--text2);}
+.m-save{flex:2;padding:11px;background:var(--c-kanmu);border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;font-family:var(--font-d);cursor:pointer;color:white;}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(12px);background:var(--text);color:white;border-radius:24px;padding:10px 22px;font-size:13px;font-family:var(--font-d);font-weight:700;opacity:0;transition:all .28s;z-index:300;white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* FADE */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.fu{animation:fadeUp .4s ease both;}
+.d1{animation-delay:.04s}.d2{animation-delay:.1s}.d3{animation-delay:.16s}.d4{animation-delay:.22s}.d5{animation-delay:.28s}
+</style>
+</head>
+<body>
+
+<div id="cl" style="position:fixed;inset:0;pointer-events:none;z-index:999;"></div>
+<div class="toast" id="toast"></div>
+
+<!-- MODAL -->
+<div class="m-overlay" id="modal" onclick="closeOut(event)">
+  <div class="m-box">
+    <div class="m-title" id="m-title">編輯考試資訊</div>
+    <div class="m-sub">修改後倒數會立即更新</div>
+    <div class="m-lbl">考試名稱</div>
+    <input class="m-in" id="mn" type="text">
+    <div class="m-lbl">考試日期</div>
+    <input class="m-in" id="md" type="date">
+    <div class="m-btns">
+      <button class="m-cancel" onclick="closeM()">取消</button>
+      <button class="m-save" onclick="saveM()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+  <!-- TOPBAR -->
+  <div class="topbar fu d1">
+    <div>
+      <div class="site-name">備考任務板</div>
+      <div class="site-sub">持續追蹤每一個考試的準備進度</div>
+    </div>
+    <div class="xp-chip" onclick="popCoins(this)">
+      <div class="xp-dot"></div>
+      <span class="xp-val" id="xpv">1,240</span>
+      <span class="xp-lbl">XP</span>
+    </div>
+  </div>
+
+  <!-- STREAK -->
+  <div class="streak-bar fu d1">
+    <div class="s-pips" id="spips"></div>
+    <div class="s-info">
+      <div class="s-big">連續學習</div>
+      <div class="s-small" id="ssub">保持每日練習，累積學習能量</div>
+    </div>
+    <div>
+      <div class="s-num" id="snum">0</div>
+      <div class="s-lbl">天</div>
+    </div>
+  </div>
+
+  <!-- ALERTS -->
+  <div class="alert danger fu d1" id="al-d">
+    <div class="alert-title" id="al-d-t">考試即將到來</div>
+    <div class="alert-body" id="al-d-m"></div>
+  </div>
+  <div class="alert warn fu d1" id="al-w">
+    <div class="alert-title">考前提醒</div>
+    <div class="alert-body" id="al-w-m"></div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="grid">
+    <div class="col">
+      <!-- EXAM COUNTDOWNS -->
+      <div class="fu d2">
+        <div class="sec-h">考試倒數</div>
+        <div class="exam-grid">
+          <div class="ec gr" id="c-gr" onclick="openM('gr')">
+            <button class="edt" onclick="event.stopPropagation();openM('gr')">編輯</button>
+            <div class="ec-name" id="n-gr">英檢初級 聽讀</div>
+            <div class="ec-days" id="d-gr">—</div>
+            <div class="ec-lbl">天後</div>
+            <div class="ec-date" id="dt-gr">2026/6/6</div>
+          </div>
+          <div class="ec gw" id="c-gw" onclick="openM('gw')">
+            <button class="edt" onclick="event.stopPropagation();openM('gw')">編輯</button>
+            <div class="ec-name" id="n-gw">英檢初級 說寫</div>
+            <div class="ec-days" id="d-gw">—</div>
+            <div class="ec-lbl">天後</div>
+            <div class="ec-date" id="dt-gw">2026/9/12</div>
+          </div>
+          <div class="ec jp" id="c-jp" onclick="openM('jp')">
+            <button class="edt" onclick="event.stopPropagation();openM('jp')">編輯</button>
+            <div class="ec-name" id="n-jp">日檢 N4</div>
+            <div class="ec-days" id="d-jp">—</div>
+            <div class="ec-lbl">天後</div>
+            <div class="ec-date" id="dt-jp">2026/12/6</div>
+          </div>
+          <div class="ec km" id="c-km" onclick="openM('km')">
+            <button class="edt" onclick="event.stopPropagation();openM('km')">編輯</button>
+            <div class="ec-name" id="n-km">關務三等特考</div>
+            <div class="ec-days" id="d-km">—</div>
+            <div class="ec-lbl">天後</div>
+            <div class="ec-date" id="dt-km">2027/4/1</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI -->
+      <div class="ai-box fu d3">
+        <div class="ai-head"><div class="ai-dot"></div><div class="ai-tag">AI 今日建議</div></div>
+        <div class="ai-text" id="ai-t">正在分析學習狀況...</div>
+      </div>
+
+      <!-- PROGRESS -->
+      <div class="fu d4">
+        <div class="sec-h">各科進度</div>
+        <div class="prog-wrap">
+          <div class="prog-item">
+            <div class="prog-top"><span class="prog-lbl">英檢初級</span><span class="prog-pct" style="color:var(--c-gept-r)" id="pg-gr">0%</span></div>
+            <div class="prog-track"><div class="prog-fill" id="pb-gr" style="background:var(--c-gept-r)"></div></div>
+            <div class="prog-sub" id="ps-gr">尚未開始作答</div>
+          </div>
+          <div class="prog-item">
+            <div class="prog-top"><span class="prog-lbl">日文 N5 → N4</span><span class="prog-pct" style="color:var(--c-jlpt)" id="pg-jp">0%</span></div>
+            <div class="prog-track"><div class="prog-fill" id="pb-jp" style="background:var(--c-jlpt)"></div></div>
+            <div class="prog-sub" id="ps-jp">目前等級：N5，正確率達 90% 後升級</div>
+          </div>
+          <div class="prog-item">
+            <div class="prog-top"><span class="prog-lbl">關務三等特考</span><span class="prog-pct" style="color:var(--c-kanmu)" id="pg-km">0%</span></div>
+            <div class="prog-track"><div class="prog-fill" id="pb-km" style="background:var(--c-kanmu)"></div></div>
+            <div class="prog-sub" id="ps-km">尚未開始作答</div>
+          </div>
+          <div class="prog-item">
+            <div class="prog-top"><span class="prog-lbl">素描基礎</span><span class="prog-pct" style="color:var(--c-sketch)" id="pg-sk">0%</span></div>
+            <div class="prog-track"><div class="prog-fill" id="pb-sk" style="background:var(--c-sketch)"></div></div>
+            <div class="prog-sub" id="ps-sk">尚未開始打卡</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <!-- TODAY TASKS -->
+      <div class="fu d3">
+        <div class="sec-h">今日任務</div>
+        <div class="tasks-wrap">
+          <div class="task-row" id="tk0" onclick="doneTask(0)">
+            <div class="t-bar" style="background:var(--c-gept-r)"></div>
+            <div class="t-body"><div class="t-name">英檢初級 — 單字與克漏字</div><div class="t-meta">10 題</div></div>
+            <div class="t-xp">+30 XP</div>
+            <div class="t-chk" id="ck0"></div>
+          </div>
+          <div class="task-row" id="tk1" onclick="doneTask(1)">
+            <div class="t-bar" style="background:var(--c-jlpt)"></div>
+            <div class="t-body"><div class="t-name">日文 N5 — 單字與文法</div><div class="t-meta">10 題</div></div>
+            <div class="t-xp">+25 XP</div>
+            <div class="t-chk" id="ck1"></div>
+          </div>
+          <div class="task-row" id="tk2" onclick="doneTask(2)">
+            <div class="t-bar" style="background:var(--c-kanmu)"></div>
+            <div class="t-body"><div class="t-name">關務特考 — 法學知識</div><div class="t-meta">5 題</div></div>
+            <div class="t-xp">+35 XP</div>
+            <div class="t-chk" id="ck2"></div>
+          </div>
+          <div class="task-row" id="tk3" onclick="doneTask(3)">
+            <div class="t-bar" style="background:var(--c-sketch)"></div>
+            <div class="t-body"><div class="t-name">素描每日挑戰</div><div class="t-meta">1 個練習</div></div>
+            <div class="t-xp">+20 XP</div>
+            <div class="t-chk" id="ck3"></div>
+          </div>
+          <button class="go-btn" id="gobtn" onclick="goStart()">開始今日冒險</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const DEFAULTS={gr:{name:'英檢初級 聽讀',date:'2026-06-06'},gw:{name:'英檢初級 說寫',date:'2026-09-12'},jp:{name:'日檢 N4',date:'2026-12-06'},km:{name:'關務三等特考',date:'2027-04-01'}};
+const XPS=[30,25,35,20];
+function defS(){return{xp:1240,streak:5,lastDate:null,done:[],exams:JSON.parse(JSON.stringify(DEFAULTS)),prog:{gr:0,jp:0,km:0,sk:0},jpLv:'N5',jpC:0,jpT:0};}
+let S=(()=>{try{return JSON.parse(localStorage.getItem('lq3'))||defS();}catch(e){return defS();}})();
+const sv=()=>localStorage.setItem('lq3',JSON.stringify(S));
+const today=()=>new Date().toISOString().slice(0,10);
+function daysUntil(ds){if(!ds)return null;const n=new Date();n.setHours(0,0,0,0);const t=new Date(ds);t.setHours(0,0,0,0);return Math.ceil((t-n)/86400000);}
+function fmt(ds){if(!ds)return'待確認';const d=new Date(ds);return`${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;}
+
+function chkStreak(){
+  const t=today();
+  if(S.lastDate===t)return;
+  const y=new Date(Date.now()-86400000).toISOString().slice(0,10);
+  if(S.lastDate===y)S.streak++;
+  else S.streak=S.lastDate?1:1;
+  S.lastDate=t;S.done=[];sv();
+}
+
+const ENCOURAGE=['加油！你做得到的。','穩住，每天一點點就是進步。','別慌，完成今日任務就夠了。','你比你想的更有準備。'];
+function rnd(arr){return arr[Math.floor(Math.random()*arr.length)];}
+
+function render(){
+  chkStreak();
+  // XP
+  document.getElementById('xpv').textContent=S.xp.toLocaleString();
+  // streak pips
+  const pp=document.getElementById('spips');pp.innerHTML='';
+  for(let i=0;i<7;i++){const p=document.createElement('div');p.className='s-pip'+(i<S.streak?' on':'');pp.appendChild(p);}
+  document.getElementById('snum').textContent=S.streak;
+  document.getElementById('ssub').textContent=S.streak>=7?'連續一週！你太強了！':'保持每日練習，累積學習能量';
+  // exams
+  ['gr','gw','jp','km'].forEach(k=>{
+    const ex=S.exams[k],d=daysUntil(ex.date);
+    document.getElementById('n-'+k).textContent=ex.name;
+    document.getElementById('dt-'+k).textContent=fmt(ex.date);
+    const el=document.getElementById('d-'+k);
+    if(d===null){el.textContent='?';}
+    else if(d<=0){el.textContent='今天';el.style.fontSize='18px';}
+    else{el.textContent=d;el.style.fontSize='';}
+    const c=document.getElementById('c-'+k);
+    d!==null&&d<=14?c.classList.add('urgent'):c.classList.remove('urgent');
+  });
+  // alerts
+  const dMsgs=[],wMsgs=[];
+  ['gr','gw','jp','km'].forEach(k=>{
+    const d=daysUntil(S.exams[k].date);
+    if(d===null||d<0)return;
+    if(d<=14)dMsgs.push(`「${S.exams[k].name}」剩 ${d} 天 — ${rnd(ENCOURAGE)}`);
+    else if(d<=30)wMsgs.push(`「${S.exams[k].name}」還有 ${d} 天，保持節奏。`);
+  });
+  const ad=document.getElementById('al-d'),aw=document.getElementById('al-w');
+  if(dMsgs.length){ad.classList.add('show');document.getElementById('al-d-m').textContent=dMsgs.join(' ');}else ad.classList.remove('show');
+  if(wMsgs.length&&!dMsgs.length){aw.classList.add('show');document.getElementById('al-w-m').textContent=wMsgs.join(' ');}else aw.classList.remove('show');
+  // AI msg
+  const gd=daysUntil(S.exams['gr'].date);
+  let msg='';
+  if(S.done.length===4)msg='今日所有任務都完成了！好好休息，明天繼續保持。';
+  else if(S.done.length===0){
+    if(gd!==null&&gd<=60)msg=`英檢初級聽讀還有 ${gd} 天，今天優先完成英檢單字練習，再補日文單字鞏固詞彙量。`;
+    else msg='今天從英檢和日文的日常練習開始，養成學習節奏比什麼都重要。';
+  }else{
+    const left=[0,1,2,3].filter(i=>!S.done.includes(i));
+    const names=['英檢詞彙','日文單字','關務法規','素描挑戰'];
+    msg=`已完成 ${S.done.length} 個任務，繼續！剩下：${left.map(i=>names[i]).join('、')}。`;
+  }
+  document.getElementById('ai-t').textContent=msg;
+  // tasks
+  for(let i=0;i<4;i++){
+    const done=S.done.includes(i);
+    document.getElementById('tk'+i).classList.toggle('done',done);
+    const ck=document.getElementById('ck'+i);
+    ck.classList.toggle('checked',done);ck.textContent=done?'✓':'';
+  }
+  const all=S.done.length>=4;
+  const btn=document.getElementById('gobtn');
+  btn.textContent=all?'今日任務全部完成':'開始今日冒險';
+  btn.classList.toggle('done-all',all);
+  // progress
+  setBar('pb-gr','pg-gr',S.prog.gr);setBar('pb-jp','pg-jp',S.prog.jp);setBar('pb-km','pg-km',S.prog.km);setBar('pb-sk','pg-sk',S.prog.sk);
+  document.getElementById('ps-jp').textContent=`目前等級：${S.jpLv}，正確率 ${S.jpT>0?Math.round(S.jpC/S.jpT*100):0}%，達 90% 後升級`;
+  document.getElementById('ps-gr').textContent=S.prog.gr>0?`正確率 ${Math.round(S.prog.gr)}%`:'尚未開始作答';
+  document.getElementById('ps-km').textContent=S.prog.km>0?`正確率 ${Math.round(S.prog.km)}%`:'尚未開始作答';
+  document.getElementById('ps-sk').textContent=S.prog.sk>0?`已打卡 ${Math.round(S.prog.sk/10)} 次`:'尚未開始打卡';
+}
+
+function setBar(bid,pid,v){const p=Math.min(100,Math.round(v));setTimeout(()=>{document.getElementById(bid).style.width=p+'%';},100);document.getElementById(pid).textContent=p+'%';}
+
+function doneTask(i){
+  if(S.done.includes(i))return;
+  S.done.push(i);S.xp+=XPS[i];sv();
+  spawnAt(document.getElementById('tk'+i),XPS[i]);
+  toast('+'+XPS[i]+' XP 獲得');render();
+}
+function goStart(){
+  const n=[0,1,2,3].find(i=>!S.done.includes(i));
+  if(n!==undefined)doneTask(n);else toast('今日任務已全部完成！');
+}
+
+// coins
+function popCoins(el){const r=el.getBoundingClientRect();for(let i=0;i<6;i++)setTimeout(()=>coin(r.left+r.width/2,r.top+r.height/2),i*65);}
+function spawnAt(el,xp){const r=el.getBoundingClientRect();const n=Math.min(7,Math.ceil(xp/8));for(let i=0;i<n;i++)setTimeout(()=>coin(r.left+r.width*Math.random(),r.top+r.height/2),i*55);}
+function coin(x,y){const c=document.createElement('div');c.className='coin-el';c.style.left=(x+(Math.random()-.5)*28)+'px';c.style.top=y+'px';document.getElementById('cl').appendChild(c);setTimeout(()=>c.remove(),950);}
+
+// modal
+let ek=null;
+function openM(k){ek=k;const ex=S.exams[k];document.getElementById('m-title').textContent='編輯：'+ex.name;document.getElementById('mn').value=ex.name;document.getElementById('md').value=ex.date||'';document.getElementById('modal').classList.add('open');}
+function closeM(){document.getElementById('modal').classList.remove('open');}
+function closeOut(e){if(e.target.id==='modal')closeM();}
+function saveM(){
+  const n=document.getElementById('mn').value.trim(),d=document.getElementById('md').value;
+  if(!n){toast('請輸入考試名稱');return;}
+  S.exams[ek].name=n;S.exams[ek].date=d||null;sv();closeM();toast('已儲存');render();
+}
+
+// toast
+let tt;
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2200);}
+
+render();
+</script>
+</body>
+</html>
