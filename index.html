@@ -261,10 +261,10 @@ body{font-family:var(--font-b);color:var(--text);display:flex;overflow:hidden;}
 
     <!-- Page frames -->
     <iframe class="page-frame active" id="frame-dashboard" src="dashboard.html" title="備考儀表板"></iframe>
-    <iframe class="page-frame" id="frame-quiz" src="" data-src="quiz.html" title="每日測驗"></iframe>
-    <iframe class="page-frame" id="frame-mock" src="" data-src="mock.html" title="模擬考試"></iframe>
-    <iframe class="page-frame" id="frame-weakness" src="" data-src="weakness.html" title="弱點分析"></iframe>
-    <iframe class="page-frame" id="frame-history" src="" data-src="history.html" title="歷史紀錄"></iframe>
+    <iframe class="page-frame" id="frame-quiz" src="quiz.html" title="每日測驗"></iframe>
+    <iframe class="page-frame" id="frame-mock" src="mock.html" title="模擬考試"></iframe>
+    <iframe class="page-frame" id="frame-weakness" src="weakness.html" title="弱點分析"></iframe>
+    <iframe class="page-frame" id="frame-history" src="history.html" title="歷史紀錄"></iframe>
 
     <!-- Settings (built-in, no iframe) -->
     <div class="settings-page" id="frame-settings">
@@ -372,8 +372,8 @@ function goPage(page){
   if(frame){
     frame.classList.add('active');
     // lazy load iframe
-    if(frame.tagName==='IFRAME'&&!frame.src&&frame.dataset.src){
-      frame.src=frame.dataset.src;
+    // preloaded
+      
     }
   }
 
